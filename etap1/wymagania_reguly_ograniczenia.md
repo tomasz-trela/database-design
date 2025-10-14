@@ -15,6 +15,9 @@
 - Klient chce mieć dostęp do informacji o alergenach wybranych dań.  
 - Klient chce mieć możliwość otrzymania faktury do płatności.  
 - Klient chce móc anulować zamówienie.  
+- Klient chce móc składać reklamacje dotyczące jakości dostarczonego jedzenia lub problemów z dostawą.  
+- Klient chce mieć możliwość śledzenia statusu swojej reklamacji.  
+- Klient chce otrzymywać odpowiedzi na złożone reklamacje.
 
 ---
 
@@ -72,7 +75,8 @@
 - Usuwanie składników, alergenów oraz dań.  
 - Przeglądanie logów systemowych oraz aktywności użytkowników.  
 - Dostęp do statystyk działania systemu.  
-- Tworzenie kopii zapasowych bazy danych.  
+- Tworzenie kopii zapasowych bazy danych.
+- Obsługa reklamacji.  
 
 ---
 
@@ -94,7 +98,8 @@
 - Może usuwać składniki, alergeny, przepisy i opinie, jeśli nie są powiązane z aktywnymi danymi operacyjnymi.  
 - Ma dostęp do historii zamówień, płatności i faktur.  
 - Ma dostęp do logów systemowych oraz statystyk działania systemu.  
-- Może tworzyć kopie zapasowe bazy danych.  
+- Może tworzyć kopie zapasowe bazy danych. 
+- Ma dostęp do złożonych reklamacji 
 
 ---
 
@@ -120,6 +125,7 @@
 - Może wystawić ocenę wybranym daniom.  
 - Faktura wystawiana jest po zaksięgowaniu płatności.  
 - Może anulować zamówienie najpóźniej do godziny 18:00 dnia poprzedzającego dostawę.  
+- Może złożyć reklamację dotyczącej jednej lub więcej pozycji zamówienia.
 
 ---
 
@@ -187,7 +193,7 @@
 - Może usunąć adres tylko, jeśli nie jest powiązany z żadnym zamówieniem.  
 - Może zapisać konkretne danie do ulubionych tylko raz.  
 - Może wystawić tylko jedną ocenę dla dania.  
-- Może wystawić ocenę lub opinię tylko po dostawie.  
+- Może wystawić ocenę, opinię lub reklamację tylko po dostawie. 
 
 ---
 
@@ -213,4 +219,7 @@
 ## Zamówienia
 
 - Muszą być oznaczone statusem: `przyjęte`, `w realizacji`, `oczekujące na dostawę`, `w dostawie`.  
-- Zamówienia na kolejny dzień przyjmowane są do godziny 18:00.  
+- Zamówienia na kolejny dzień przyjmowane są do godziny 18:00.
+
+## Reklamacja
+- Muszą być oznaczone statusem: `złożona`, `rozpatrywana`, `rozpatrzona pozytywnie`, `rozpatrzona pozytywnie`.  

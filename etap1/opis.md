@@ -48,6 +48,7 @@ Projekt bazy danych obejmuje implementację kluczowych modułów niezbędnych do
 *   **Obsługa Płatności:** Ewidencja płatności i faktur powiązanych z zamówieniami.
 *   **Proces Realizacji i Dostawy:** Śledzenie procesu realizacji zamówienia poprzez przypisanie go do kucharza oraz koordynacja dostawy z dostawcą.
 *   **Personalizacja i Opinie:** Przechowywanie informacji o alergiach klientów, ich ulubionych daniach oraz zbieranie opinii na temat posiłków.
+* **Składanie i obsługa reklamacji** Możliwość składania reklamacji przez klientów, które są rozpatrywane przez odpowiednich pracowników.
 
 #### **Czego nie należy uwzględniać:**
 
@@ -58,5 +59,4 @@ Diagram ERD nie obejmuje funkcjonalności, które wykraczają poza podstawowe za
 *   **Zarządzanie Dostawcami Produktów:** Baza nie przechowuje informacji o dostawcach składników i produktów spożywczych.
 *   **Logistyka i Flota Pojazdów:** Projekt nie obejmuje zarządzania pojazdami, planowania optymalnych tras dostaw ani przypisywania kierowców do konkretnych pojazdów.
 *   **Zaawansowane Raportowanie i Analizy:** Diagram nie przewiduje struktur do generowania zaawansowanych raportów finansowych (np. analizy kosztów i przychodów), popularności diet czy szczegółowych statystyk sprzedaży.
-*   **Obsługa Reklamacji:** Brak dedykowanej encji do zarządzania procesem reklamacji zgłaszanych przez klientów.
 *   **Szczegółowe Przepisy:** System nie przewiduje przechowywania szczegółowych instrukcji przygotowania potraw (przepisów).
