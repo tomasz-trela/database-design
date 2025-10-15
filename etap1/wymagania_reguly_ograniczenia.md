@@ -1,8 +1,6 @@
 # Wymagania użytkowników
 
----
-
-## Wymagania klienta
+### Wymagania klienta
 
 - Klient w ramach zamówienia chce zamówić usługi kateringowe na wybrane dni miesiąc do przodu.  
 - Klient chce mieć dostarczone usługi kateringowe konkretnego dnia na wybrany adres o konkretnej godzinie.  
@@ -21,15 +19,7 @@
 
 ---
 
-## Wymagania właściciela kateringu
-
-- Właściciel chce wiedzieć, ile i jakich składników będzie potrzebnych w wybranych dniach i tygodniach.  
-- Właściciel chce mieć dostęp do historii realizacji zamówień przez kucharzy i historii dostaw.  
-- Właściciel chce analizować wyniki finansowe spółki.  
-
----
-
-## Wymagania dietetyka
+### Wymagania dietetyka
 
 - Dostęp do składników oraz ich wartości odżywczych.  
 - Dodawanie oraz edytowanie składników.  
@@ -49,7 +39,7 @@
 
 ---
 
-## Wymagania kucharza
+### Wymagania kucharza
 
 - Dostęp do listy dań do przygotowania w danym dniu.  
 - Zestawienie alergii wśród klientów na dany dzień.  
@@ -64,34 +54,43 @@
 
 ---
 
-## Wymagania administratora
+### Wymagania administratora
 
+- Przeglądanie dziennych i tygodniowych potrzeb na składniki 
 - Ustalanie ról i poziomów dostępu.  
 - Zarządzanie kontami użytkowników (tworzenie, edycja, usuwanie, blokowanie).  
 - Przeglądanie historii zamówień, płatności i faktur.  
 - Dostęp do opinii użytkowników i możliwość ich usuwania.  
-- Przeglądanie historii zmian w daniach i składnikach.  
+- Przeglądanie historii zmian w daniach i składnikach.
+- Prezglądanie historii realizacji zamówień przez kucharzy i historii dostaw.
 - Zarządzanie wersjami dań oraz zatwierdzanie zmian.  
 - Usuwanie składników, alergenów oraz dań.  
 - Przeglądanie logów systemowych oraz aktywności użytkowników.  
-- Dostęp do statystyk działania systemu.  
+- Dostęp do statystyk działania systemu.
+- Dostęp do wygenerowanych raportów finansowych spółki
 - Tworzenie kopii zapasowych bazy danych.
-- Obsługa reklamacji.  
+- Obsługa reklamacji.
 
 ---
 
-## Wymagania dostawcy
+### Wymagania dostawcy
 
 - Dostęp do listy zamówień na dany dzień, wraz z adresami i danymi klienta (imię, nazwisko, telefon).  
 - Przegląd dań przypisanych do realizowanej dostawy.  
 
----
-
 # Reguły biznesowe
 
+### Techniczne
+
+- Płatności realizowane są przez zewnętrznego operatora (np. PayU, Stripe) – system nie przechowuje danych kart.  
+- Adres dostawy musi być możliwy do zlokalizowania przez API (np. Google Maps).  
+- Co 3 dni system wykonuje kopię zapasową bazy danych.  
+- System nie pozwala na usunięcie danych operacyjnych.  
+- System przechowuje dane zgodnie z RODO i umożliwia ich trwałe usunięcie (prawo do bycia zapomnianym).
+
 ---
 
-## Administrator
+### Administrator
 
 - Zarządza kontami użytkowników (tworzenie, edycja, blokowanie, usuwanie).  
 - Zatwierdza przepisy i modyfikacje składników oraz alergenów dodanych przez dietetyków.  
@@ -100,19 +99,14 @@
 - Ma dostęp do logów systemowych oraz statystyk działania systemu.  
 - Może tworzyć kopie zapasowe bazy danych. 
 - Ma dostęp do złożonych reklamacji 
-
----
-
-## Właściciel
-
-- Ma dostęp do listy zamówień z podziałem na dni i tygodnie.  
+- Ma dostęp do listy zamówień z podziałem na dni i tygodnie wraz wymaganymi składnikami.  
 - Może przeglądać zapotrzebowanie na składniki generowane przez system.  
 - Ma dostęp do historii realizacji zamówień przez kucharzy i historii dostaw.  
 - Może generować raporty finansowe oraz zestawienia sprzedaży.  
 
 ---
 
-## Klient
+### Klient
 
 - Aby założyć konto, musi podać imię, nazwisko, adres e-mail, telefon oraz hasło.  
 - Każde zamówienie musi zawierać co najmniej jedną pozycję (na przynajmniej jeden dzień).  
@@ -129,7 +123,7 @@
 
 ---
 
-## Dietetyk
+### Dietetyk
 
 - Może dodawać i edytować składniki, alergeny i dania.  
 - Wszystkie zmiany wymagają zatwierdzenia przez administratora.  
@@ -138,7 +132,7 @@
 
 ---
 
-## Kucharz
+### Kucharz
 
 - Może aktualizować status realizacji pozycji zamówienia (np. w przygotowaniu, zrealizowane).  
 - Ma dostęp tylko do dań przypisanych do jego zadań.  
@@ -146,7 +140,7 @@
 
 ---
 
-## Dania
+### Dania
 
 - Kategorie dań: wegańskie, wegetariańskie, bezglutenowe, bez laktozy, wysokobiałkowe, śniadanie, przekąska, obiad, podwieczorek, kolacja.  
 - Propozycje dań są generowane wyłącznie na podstawie dań zatwierdzonych przez administratora.  
@@ -155,7 +149,7 @@
 
 ---
 
-## System
+### System
 
 - System przechowuje dane użytkowników zgodnie z RODO.  
 - Automatycznie generuje dobowe i tygodniowe zapotrzebowanie na składniki.  
@@ -163,30 +157,16 @@
 
 ---
 
-## Zamówienia i dostawy
+### Zamówienia i dostawy
 
 - Każde zamówienie przypisane jest do kucharza odpowiedzialnego za realizację.  
 - Każde zamówienie przypisane jest do dostawcy odpowiedzialnego za dostarczenie.  
 - Status realizacji i dostawy aktualizowane są niezależnie.  
 - System nie może zaplanować dwóch dostaw dla tego samego klienta na ten sam dzień.  
 
----
-
 # Ograniczenia
 
----
-
-## Techniczne
-
-- Płatności realizowane są przez zewnętrznego operatora (np. PayU, Stripe) – system nie przechowuje danych kart.  
-- Adres dostawy musi być możliwy do zlokalizowania przez API (np. Google Maps).  
-- Co 3 dni system wykonuje kopię zapasową bazy danych.  
-- System nie pozwala na usunięcie danych operacyjnych.  
-- System przechowuje dane zgodnie z RODO i umożliwia ich trwałe usunięcie (prawo do bycia zapomnianym).  
-
----
-
-## Klient
+### Klient
 
 - Może złożyć zamówienie tylko po zalogowaniu.  
 - Może zamówić najwcześniej na następny dzień i najpóźniej na miesiąc do przodu.  
@@ -197,29 +177,29 @@
 
 ---
 
-## Dostawy
+### Dostawy
 
-- Godzina oczekiwanej dostawy: 7:00–15:00.  
+- Godzina oczekiwanej dostawy może być tylko o następujących godiznach: 7:00–15:00.  
 - Dostawy oznaczane są statusem: `oczekuje`, `w drodze`, `dostarczone`, `opóźnione`.  
 
 ---
 
-## Dietetyk
+### Dietetyk
 
-- Może edytować tylko dane niezatwierdzone przez administratora.  
-
----
-
-## Kucharz
-
-- Ma dostęp wyłącznie do zamówień przypisanych do niego w danym dniu.  
+- Edycja dań musi być zatwierdzona prze administratora
 
 ---
 
-## Zamówienia
+### Kucharz
+
+- Może edytować jedynie realizacje pozycji zamówienia, do k†órych jest przypisany
+
+---
+
+### Zamówienia
 
 - Muszą być oznaczone statusem: `przyjęte`, `w realizacji`, `oczekujące na dostawę`, `w dostawie`.  
 - Zamówienia na kolejny dzień przyjmowane są do godziny 18:00.
 
 ## Reklamacja
-- Muszą być oznaczone statusem: `złożona`, `rozpatrywana`, `rozpatrzona pozytywnie`, `rozpatrzona pozytywnie`.  
+- Muszą być oznaczone statusem: `złożona`, `rozpatrywana`, `rozpatrzona pozytywnie`, `rozpatrzona negatywnie`.  
