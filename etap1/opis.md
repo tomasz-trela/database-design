@@ -6,9 +6,9 @@ System ma na celu wsparcie kluczowych procesów w firmie cateringowej, koncentru
 
 Projektowana baza danych umożliwia przechowywanie i zarządzanie następującymi informacjami:
 
-*   **Dane Klientów:** Gromadzenie informacji o klientach, ich adresach oraz powiązanych z nimi zamówieniach, płatnościach, fakturach, opiniach i ulubionych daniach.
-*   **Zamówienia i Płatności:** Rejestrowanie każdego zamówienia z przypisaniem do klienta, adresu dostawy, zamówionych dań i planów żywieniowych. System śledzi również płatności i faktury powiązane z zamówieniami.
-*   **Oferta Produktowa:** Szczegółowe informacje o daniach, w tym o składnikach, alergenach, kategoriach i dietetykach odpowiedzialnych za ich opracowanie. Baza przechowuje także gotowe plany żywieniowe oraz menu na dany dzień.
+*   **Dane Klientów:** Gromadzenie informacji o klientach, ich adresach oraz powiązanych z nimi zamówieniami, płatnościami, fakturami, opiniami i ulubionymi daniami.
+*   **Zamówienia i Płatności:** Rejestrowanie każdego zamówienia z przypisaniem do klienta wraz z daniami na wybrany dzień, adresami dostaw i planami żywieniowymi. System śledzi również płatności i faktury powiązane z zamówieniami.
+*   **Oferta Produktowa:** Szczegółowe informacje o daniach, w tym o składnikach, alergenach, kategoriach i dietetykach odpowiedzialnych za ich opracowanie. Baza przechowuje także gotowe plany żywieniowe oraz menu dnia.
 *   **Realizacja i Dostawa:** Zarządzanie procesem realizacji zamówienia poprzez przypisanie go do konkretnego kucharza oraz planowanie dostawy z dedykowanym dostawcą.
 *   **Preferencje i Alergie:** Możliwość śledzenia alergii klientów oraz powiązań między alergenami a składnikami w potrawach, co pozwala na personalizację oferty.
 *   **Opinie:** Zbieranie i przechowywanie opinii wystawianych przez klientów na temat konkretnych dań.
@@ -17,17 +17,17 @@ Projektowana baza danych umożliwia przechowywanie i zarządzanie następującym
 
 Struktura bazy danych została zaprojektowana, aby umożliwić uzyskanie odpowiedzi na następujące pytania:
 
-*   Jacy klienci zamawiali konkretne danie lub plan żywieniowy?
+*   Jakie dania są w ofercie kateringu?
+*   Jacy klienci zamawiali konkretne dania lub plany żywieniowe?
 *   Jakie są wszystkie zamówienia złożone przez danego klienta?
 *   Jakie dania zostały opracowane przez konkretnego dietetyka?
-*   Które zamówienia nie zostały jeszcze opłacone?
 *   Jakie dania zawierają określony składnik lub alergen?
 *   Którzy klienci zgłosili alergię na dany alergen?
 *   Kto jest odpowiedzialny za realizację (kucharz) i dostawę (dostawca) konkretnego zamówienia?
 *   Jaka jest historia płatności dla danego zamówienia?
 *   Jakie są opinie na temat konkretnego dania?
 *   Jakie dania należą do najczęściej wybieranych jako "ulubione" przez klientów?
-*   Jakie dania znajdują się w menu na dany dzień?
+*   Jakie dania znajdują się w menu dnia?
 *   Do jakich kategorii przypisane jest dane danie?
 
 ### **Zakres projektu**
@@ -38,7 +38,7 @@ Projekt bazy danych obejmuje implementację kluczowych modułów niezbędnych do
 
 *   **Zarządzanie Użytkownikami i Dostępem:** System będzie wyposażony w mechanizm logowania i autoryzacji. Zdefiniowane zostaną role użytkowników z różnymi poziomami uprawnień:
     *   **Administrator:** Pełen dostęp do zarządzania wszystkimi modułami systemu, w tym danymi klientów, zamówieniami, ofertą oraz kontami innych użytkowników.
-    *   **Klient:** Możliwość rejestracji, logowania, zarządzania własnym profilem i danymi adresowymi, składania zamówień, przeglądania historii, dokonywania płatności oraz wystawiania opinii.
+    *   **Klient:** Możliwość rejestracji, logowania, zarządzania własnym profilem i danymi adresowymi, składania zamówień, przeglądania historii zamówień, zapisywania dań do ulubionych, dokonywania płatności oraz wystawiania opinii.
     *   **Dietetyk:** Dostęp do modułu zarządzania ofertą, gdzie może dodawać i edytować dania, składniki, alergeny oraz tworzyć plany żywieniowe i menu dnia.
     *   **Kucharz:** Dostęp do panelu z przypisanymi zamówieniami w celu zarządzania procesem ich realizacji.
     *   **Dostawca:** Dostęp do informacji o zamówieniach przypisanych do dostawy, wraz z adresami i danymi kontaktowymi klientów.
