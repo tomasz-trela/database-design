@@ -439,3 +439,48 @@ ALTER TABLE "cook_speciality" ADD FOREIGN KEY("specialty_id") REFERENCES "specia
 
 ALTER TABLE "courier_types" ADD FOREIGN KEY("courier_id") REFERENCES "courier"("user_id");
 ALTER TABLE "courier_types" ADD FOREIGN KEY("courier_type_id") REFERENCES "courier_type"("id");
+
+-- =================================================================
+-- DODAWANIE CHECK CONSTRAINTS
+-- =================================================================
+
+ALTER TABLE "opinion"
+ADD CONSTRAINT "chk_opinion_rating" CHECK (rating >= 1 AND rating <= 5);
+
+ALTER TABLE "preference"
+ADD CONSTRAINT "chk_preference_rating" CHECK (rating >= 1 AND rating <= 10);
+
+ALTER TABLE "course"
+ADD CONSTRAINT "chk_course_price" CHECK (price >= 0),
+ADD CONSTRAINT "chk_course_protein" CHECK (protein_100g >= 0),
+ADD CONSTRAINT "chk_course_calories" CHECK (calories_100g >= 0),
+ADD CONSTRAINT "chk_course_carbohydrates" CHECK (carbohydrates_100g >= 0),
+ADD CONSTRAINT "chk_course_fat" CHECK (fat_100g >= 0);
+
+ALTER TABLE "ingredient"
+ADD CONSTRAINT "chk_ingredient_calories" CHECK (calories_100g >= 0),
+ADD CONSTRAINT "chk_ingredient_protein" CHECK (protein_100g >= 0),
+ADD CONSTRAINT "chk_ingredient_fat" CHECK (fat_100g >= 0),
+ADD CONSTRAINT "chk_ingredient_carbohydrates" CHECK (carbohydrates_100g >= 0);
+
+ALTER TABLE "order"
+ADD CONSTRAINT "chk_order_vat_rate" CHECK (vat_rate >= 0),
+ADD CONSTRAINT "chk_order_totals" CHECK (vat_total >= 0 AND net_total >= 0 AND gross_total >= 0);
+
+ALTER TABLE "complaint"
+ADD CONSTRAINT "chk_complaint_refund_amount" CHECK (refund_amount >= 0);
+
+ALTER TABLE "invoice"
+ADD CONSTRAINT "chk_invoice_totals" CHECK (net_total >= 0 AND vat_total >= 0 AND gross_total >= 0);
+
+ALTER TABLE "invoice_item"
+ADD CONSTRAINT "chk_invoice_item_line_number" CHECK (line_number > 0),
+ADD CONSTRAINT "chk_invoice_item_quantity" CHECK (quantity > 0),
+ADD CONSTRAINT "chk_invoice_item_vat_rate" CHECK (vat_rate >= 0),
+ADD CONSTRAINT "chk_invoice_item_amounts" CHECK (vat_amount >= 0 AND net_amount >= 0 AND gross_amount >= 0);
+
+ALTER TABLE "meal_plan_day"
+ADD CONSTRAINT "chk_meal_plan_day_day_number" CHECK (day_number > 0);
+
+ALTER TABLE "daily_menu_item"
+ADD CONSTRAINT "chk_daily_menu_item_sequence" CHECK (sequence > 0);
