@@ -64,7 +64,7 @@
         {
           "id": "ixRPnbMZq8oBnx5BcVZnZ",
           "name": "status",
-          "type": "VARCHAR",
+          "type": "COMPLAINT_STATUS",
           "default": "",
           "check": "",
           "primary": false,
@@ -72,7 +72,8 @@
           "notNull": true,
           "increment": false,
           "comment": "",
-          "size": 25
+          "size": "",
+          "values": []
         },
         {
           "id": "iH4ZdO2t81aRFzh9hpGX7",
@@ -194,15 +195,16 @@
         {
           "id": "M_mRMfmOt2VTylKTbZVcd",
           "name": "status",
-          "type": "VARCHAR",
-          "default": "accepted",
+          "type": "ORDER_STATUS",
+          "default": "",
           "check": "",
           "primary": false,
           "unique": false,
           "notNull": true,
           "increment": false,
           "comment": "",
-          "size": 25
+          "size": "",
+          "values": []
         },
         {
           "id": "N6zv5AaUDbUa91SPmH14O",
@@ -526,7 +528,7 @@
         {
           "id": "l5wUl4DGVXiJ0przmzqsm",
           "name": "invoice_number",
-          "type": "TEXT",
+          "type": "INVOICE_STATUS",
           "default": "",
           "check": "",
           "primary": false,
@@ -540,15 +542,16 @@
         {
           "id": "5j1qQX9Tu1OSOLOFrBS-4",
           "name": "status",
-          "type": "VARCHAR",
-          "default": "issued",
+          "type": "ORDER_STATUS",
+          "default": "",
           "check": "",
           "primary": false,
           "unique": false,
           "notNull": true,
           "increment": false,
           "comment": "",
-          "size": 25
+          "size": "",
+          "values": []
         },
         {
           "id": "5ylLVplIucFsSVVomTih9",
@@ -780,7 +783,7 @@
       "locked": false,
       "fields": [
         {
-          "name": "id",
+          "name": "course_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
@@ -919,8 +922,8 @@
     {
       "id": "wkHSzUs1cY5ZfcOFTzBv_",
       "name": "course_in_order_item",
-      "x": -459.55548915963686,
-      "y": 268.88192498493254,
+      "x": -437.752540069489,
+      "y": 243.92460318979,
       "locked": false,
       "fields": [
         {
@@ -983,7 +986,7 @@
           "check": "",
           "primary": true,
           "unique": false,
-          "notNull": false,
+          "notNull": true,
           "increment": false,
           "comment": "",
           "size": "",
@@ -1298,7 +1301,7 @@
       "locked": false,
       "fields": [
         {
-          "name": "id",
+          "name": "allergen_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
@@ -1468,7 +1471,7 @@
       "locked": false,
       "fields": [
         {
-          "name": "id",
+          "name": "ingredient_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
@@ -1577,10 +1580,24 @@
     {
       "id": "-Y23yJ1alO-BWT4jij5mF",
       "name": "course_ingredient",
-      "x": -158.89706919585694,
-      "y": -241.43965787001417,
+      "x": -131.1511130752889,
+      "y": -233.34596818527933,
       "locked": false,
       "fields": [
+        {
+          "id": "iDMEijSAqiVBYqGPQXlYH",
+          "name": "course_ingredient_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
         {
           "name": "ingredient_id",
           "type": "INTEGER",
@@ -1620,6 +1637,20 @@
       "locked": false,
       "fields": [
         {
+          "id": "5rIShIrriAUPJBKNJ1vKM",
+          "name": "allergen_customer_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
           "name": "allergen_id",
           "type": "INTEGER",
           "default": "",
@@ -1657,6 +1688,20 @@
       "y": -809.644461040904,
       "locked": false,
       "fields": [
+        {
+          "id": "f2zVEAOjCiBmauPZo_vbE",
+          "name": "allergen_ingredient_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
         {
           "name": "allergen_id",
           "type": "INTEGER",
@@ -1748,11 +1793,25 @@
       "locked": false,
       "fields": [
         {
-          "name": "course_id",
+          "id": "u08V9VV5xR1wbwg_e1Qw0",
+          "name": "course_category_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
           "primary": true,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
+          "name": "course_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": false,
           "unique": true,
           "notNull": true,
           "increment": true,
@@ -1765,7 +1824,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": false,
           "notNull": true,
           "increment": false,
@@ -1927,13 +1986,13 @@
     {
       "id": "SLimfstuAeLVrGNJGh7tq",
       "name": "meal_plan_item",
-      "x": -384.284520521133,
-      "y": 514.3736986935043,
+      "x": -400.2480699767551,
+      "y": 459.49955701458805,
       "locked": false,
       "fields": [
         {
-          "id": "-4SXbDN-4bh19ACoolQfc",
-          "name": "course_id",
+          "id": "bCqOnmK2huMGnpgZc4ndy",
+          "name": "meal_plan_item_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
@@ -1946,11 +2005,25 @@
           "values": []
         },
         {
+          "id": "-4SXbDN-4bh19ACoolQfc",
+          "name": "course_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
           "name": "meal_plan_day_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": true,
           "notNull": true,
           "increment": true,
@@ -2022,7 +2095,7 @@
         {
           "id": "0bIpgxLKCmrE4-xKH7EA-",
           "name": "name",
-          "type": "",
+          "type": "INVOICE_STATUS",
           "default": "",
           "check": "",
           "primary": false,
@@ -2082,11 +2155,25 @@
       "locked": false,
       "fields": [
         {
-          "name": "menu_id",
+          "id": "XbGMAriszcWYJdmC7zRl_",
+          "name": "daily_menu_item_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
           "primary": true,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
+          "name": "menu_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": false,
           "unique": true,
           "notNull": true,
           "increment": true,
@@ -2099,7 +2186,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": false,
           "notNull": true,
           "increment": false,
@@ -2250,8 +2337,8 @@
     {
       "id": "tR0kws45R9HawpGzilKKQ",
       "name": "order_item_fulfillment_status",
-      "x": -1984.7921961248571,
-      "y": 598.66421817939,
+      "x": -2044.8045499777047,
+      "y": 691.5000251618427,
       "locked": false,
       "fields": [
         {
@@ -2407,9 +2494,9 @@
     },
     {
       "id": "5gBwFe_oTzPwP_yfYOTjK",
-      "name": "order_item_delivery",
-      "x": -2029.4782205358092,
-      "y": 1089.1552956688802,
+      "name": "order_item_delivery_status",
+      "x": -2040.1585334709516,
+      "y": 1148.4991416634048,
       "locked": false,
       "fields": [
         {
@@ -2445,12 +2532,12 @@
     {
       "id": "Xb11YoyTlKf7CcXVqel8x",
       "name": "cook",
-      "x": -1912.9896513843257,
-      "y": -460.2646805561564,
+      "x": -1912.8838277924226,
+      "y": -463.2674249764072,
       "locked": false,
       "fields": [
         {
-          "name": "user_id",
+          "name": "cook_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
@@ -2460,20 +2547,6 @@
           "increment": true,
           "comment": "",
           "id": "2gVoa9aAXW9tafoInsQwk"
-        },
-        {
-          "id": "c3Q0uHadgaRSKM7nBadGc",
-          "name": "specialty_id",
-          "type": "INTEGER",
-          "default": "",
-          "check": "",
-          "primary": false,
-          "unique": false,
-          "notNull": true,
-          "increment": false,
-          "comment": "",
-          "size": "",
-          "values": []
         }
       ],
       "comment": "",
@@ -2488,7 +2561,7 @@
       "locked": false,
       "fields": [
         {
-          "name": "user_id",
+          "name": "courier_id",
           "type": "INTEGER",
           "default": "",
           "check": "",
@@ -2498,9 +2571,47 @@
           "increment": true,
           "comment": "",
           "id": "leMPSdPbVp7MmX56xskaB"
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "color": "#175e7a"
+    },
+    {
+      "id": "mmBeP3v4-LZp23B-WtGdg",
+      "name": "courier_types",
+      "x": -2231.9743923138954,
+      "y": -725.9784300023643,
+      "locked": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": true,
+          "notNull": true,
+          "increment": true,
+          "comment": "",
+          "id": "hvdZly5qMmON-Z_tos2On"
         },
         {
-          "id": "NjWY2D2DTh_8xoFcM3CyA",
+          "id": "pGwBMtWU5g74lLOqt7iUs",
+          "name": "courier_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
+          "id": "B0mD9T_Fb4QAYI8y68Nom",
           "name": "courier_type_id",
           "type": "INTEGER",
           "default": "",
@@ -2519,47 +2630,10 @@
       "color": "#175e7a"
     },
     {
-      "id": "mmBeP3v4-LZp23B-WtGdg",
-      "name": "courier_type",
-      "x": -2231.9743923138954,
-      "y": -725.9784300023643,
-      "locked": false,
-      "fields": [
-        {
-          "name": "id",
-          "type": "INTEGER",
-          "default": "",
-          "check": "",
-          "primary": true,
-          "unique": true,
-          "notNull": true,
-          "increment": true,
-          "comment": "",
-          "id": "hvdZly5qMmON-Z_tos2On"
-        },
-        {
-          "id": "0mwEVIZIaGSoT0ORLwNXR",
-          "name": "type",
-          "type": "VARCHAR",
-          "default": "",
-          "check": "",
-          "primary": false,
-          "unique": false,
-          "notNull": true,
-          "increment": false,
-          "comment": "",
-          "size": 255
-        }
-      ],
-      "comment": "",
-      "indices": [],
-      "color": "#175e7a"
-    },
-    {
       "id": "C7qeRaL_9zp8twHBtqUm9",
       "name": "cook_speciality",
-      "x": -2232.983425367521,
-      "y": -481.4947738384084,
+      "x": -2229.440454033997,
+      "y": -477.6989891159528,
       "locked": false,
       "fields": [
         {
@@ -2576,8 +2650,8 @@
         },
         {
           "id": "AYqX0bY0SOpJgfYHknd2K",
-          "name": "specialty",
-          "type": "VARCHAR",
+          "name": "specialty_id",
+          "type": "INTEGER",
           "default": "",
           "check": "",
           "primary": false,
@@ -2585,7 +2659,22 @@
           "notNull": true,
           "increment": false,
           "comment": "",
-          "size": 255
+          "size": "",
+          "values": []
+        },
+        {
+          "id": "rRSmIT1TMVyvi13TC-NrQ",
+          "name": "cook_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
         }
       ],
       "comment": "",
@@ -2595,8 +2684,8 @@
     {
       "id": "0YGjgoGw9UjneUewjfhMp",
       "name": "administrator",
-      "x": -1941.9570553940725,
-      "y": -1003.0369536170621,
+      "x": -1945.6211972637177,
+      "y": -1038.8582394762634,
       "locked": false,
       "fields": [
         {
@@ -2643,6 +2732,82 @@
       "comment": "",
       "indices": [],
       "color": "#175e7a"
+    },
+    {
+      "id": "2v-echg2TTSL0PqeYVB_Y",
+      "name": "specialty",
+      "x": -2573.7953461588586,
+      "y": -491.01248050107165,
+      "locked": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": true,
+          "notNull": true,
+          "increment": true,
+          "comment": "",
+          "id": "wmVHRwWHPD4cId2g1nPON"
+        },
+        {
+          "id": "kCaf0W0WxjYGMrAfoQRau",
+          "name": "name",
+          "type": "TEXT",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "color": "#175e7a"
+    },
+    {
+      "id": "5syJwiWZp9DvIvtv12_Ig",
+      "name": "courier_type",
+      "x": -2531.243131266283,
+      "y": -797.9657931963848,
+      "locked": false,
+      "fields": [
+        {
+          "name": "courier_type_id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": true,
+          "notNull": true,
+          "increment": true,
+          "comment": "",
+          "id": "BPlefC9-__K0FvmIDmHZF"
+        },
+        {
+          "id": "WNOzcUV0T0CYH6kgeM0L9",
+          "name": "name",
+          "type": "TEXT",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "color": "#175e7a"
     }
   ],
   "relationships": [
@@ -2678,17 +2843,6 @@
       "deleteConstraint": "No action",
       "name": "",
       "id": "XPdBLrzPaV95l9YXcJ9Y_"
-    },
-    {
-      "startTableId": "MAeeL9IRwWFW4J-Tl5b1W",
-      "startFieldId": "TK7yd0YaAWdcygz0PCEW_",
-      "endTableId": "8H2tFJWlBTI7E1XyQ1Chh",
-      "endFieldId": "wzTTlB4n9DCGX84vyAuZP",
-      "cardinality": "one_to_one",
-      "updateConstraint": "No action",
-      "deleteConstraint": "No action",
-      "name": "",
-      "id": "YbRyAFs312oqI_ARodeD-"
     },
     {
       "startTableId": "wkHSzUs1cY5ZfcOFTzBv_",
@@ -3087,28 +3241,6 @@
       "id": "ge22KVu3E_1vMYxGb-vct"
     },
     {
-      "startTableId": "mmBeP3v4-LZp23B-WtGdg",
-      "startFieldId": "hvdZly5qMmON-Z_tos2On",
-      "endTableId": "n_RJUKOdfQCpq8Vc2iXzu",
-      "endFieldId": "NjWY2D2DTh_8xoFcM3CyA",
-      "cardinality": "one_to_many",
-      "updateConstraint": "No action",
-      "deleteConstraint": "No action",
-      "name": "",
-      "id": "EcRX7mw9gBifD4j6fApnj"
-    },
-    {
-      "startTableId": "C7qeRaL_9zp8twHBtqUm9",
-      "startFieldId": "HIvwtvLfPSJgAnHtSGC3X",
-      "endTableId": "Xb11YoyTlKf7CcXVqel8x",
-      "endFieldId": "c3Q0uHadgaRSKM7nBadGc",
-      "cardinality": "one_to_many",
-      "updateConstraint": "No action",
-      "deleteConstraint": "No action",
-      "name": "",
-      "id": "ZpuyIcwJFLioSjdy77rBt"
-    },
-    {
       "startTableId": "Xb11YoyTlKf7CcXVqel8x",
       "startFieldId": "2gVoa9aAXW9tafoInsQwk",
       "endTableId": "5OTaJ5IbepIp5ZmONYgFg",
@@ -3140,6 +3272,61 @@
       "deleteConstraint": "No action",
       "name": "",
       "id": "GJkPYHLiVPL5Tmj8JSZB0"
+    },
+    {
+      "startTableId": "C7qeRaL_9zp8twHBtqUm9",
+      "startFieldId": "AYqX0bY0SOpJgfYHknd2K",
+      "endTableId": "2v-echg2TTSL0PqeYVB_Y",
+      "endFieldId": "wmVHRwWHPD4cId2g1nPON",
+      "cardinality": "many_to_one",
+      "updateConstraint": "No action",
+      "deleteConstraint": "No action",
+      "name": "",
+      "id": "_4maivwDslkGqQic9mUd0"
+    },
+    {
+      "startTableId": "C7qeRaL_9zp8twHBtqUm9",
+      "startFieldId": "rRSmIT1TMVyvi13TC-NrQ",
+      "endTableId": "Xb11YoyTlKf7CcXVqel8x",
+      "endFieldId": "2gVoa9aAXW9tafoInsQwk",
+      "cardinality": "many_to_one",
+      "updateConstraint": "No action",
+      "deleteConstraint": "No action",
+      "name": "",
+      "id": "egfp03xH3CDKrMnTZ-GCS"
+    },
+    {
+      "startTableId": "mmBeP3v4-LZp23B-WtGdg",
+      "startFieldId": "pGwBMtWU5g74lLOqt7iUs",
+      "endTableId": "n_RJUKOdfQCpq8Vc2iXzu",
+      "endFieldId": "leMPSdPbVp7MmX56xskaB",
+      "cardinality": "many_to_one",
+      "updateConstraint": "No action",
+      "deleteConstraint": "No action",
+      "name": "",
+      "id": "LmNqlA8mk5pjMVlPoIi02"
+    },
+    {
+      "startTableId": "mmBeP3v4-LZp23B-WtGdg",
+      "startFieldId": "B0mD9T_Fb4QAYI8y68Nom",
+      "endTableId": "5syJwiWZp9DvIvtv12_Ig",
+      "endFieldId": "BPlefC9-__K0FvmIDmHZF",
+      "cardinality": "many_to_one",
+      "updateConstraint": "No action",
+      "deleteConstraint": "No action",
+      "name": "",
+      "id": "BggLMwjCgswlQIqaZySvN"
+    },
+    {
+      "startTableId": "MAeeL9IRwWFW4J-Tl5b1W",
+      "startFieldId": "TK7yd0YaAWdcygz0PCEW_",
+      "endTableId": "8H2tFJWlBTI7E1XyQ1Chh",
+      "endFieldId": "uemcwS_uMUOz1qf5s-vgl",
+      "cardinality": "one_to_one",
+      "updateConstraint": "No action",
+      "deleteConstraint": "No action",
+      "name": "",
+      "id": "7TM-whYsxpx2KNcD1hfrX"
     }
   ],
   "notes": [],
@@ -3155,6 +3342,34 @@
         "kg",
         "l",
         "piece"
+      ]
+    },
+    {
+      "name": "order_status",
+      "values": [
+        "accepted",
+        "in progress",
+        "awaiting delivery",
+        "in delivery",
+        "delivered"
+      ]
+    },
+    {
+      "name": "complaint_status",
+      "values": [
+        "submitted",
+        "under review",
+        "positively resolved",
+        "negatively resolved"
+      ]
+    },
+    {
+      "name": "invoice_status",
+      "values": [
+        "issued",
+        "pending payment",
+        "paid",
+        "cancelled"
       ]
     }
   ],
