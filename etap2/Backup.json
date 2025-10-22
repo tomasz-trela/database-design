@@ -175,8 +175,8 @@
     {
       "id": "jvjfXlabNwpZuOB_ybj7x",
       "name": "order",
-      "x": -1526.8817982238368,
-      "y": -285.28630216003387,
+      "x": -1557.247002843519,
+      "y": -307.66769610413405,
       "locked": false,
       "fields": [
         {
@@ -293,8 +293,8 @@
     {
       "id": "RkmllBjyF_NC6HLa5JLvu",
       "name": "order_item",
-      "x": -803.1701267846756,
-      "y": 350.10191687232714,
+      "x": -1007.7093433812811,
+      "y": 562.6516681969849,
       "locked": false,
       "fields": [
         {
@@ -359,8 +359,8 @@
     {
       "id": "WH4qUCGWXFQUP8uqoeOrd",
       "name": "address",
-      "x": -1076.3867906980583,
-      "y": 41.24061943682676,
+      "x": -1056.7245690928385,
+      "y": 33.47728219412693,
       "locked": false,
       "fields": [
         {
@@ -507,8 +507,8 @@
     {
       "id": "A7AMzMXZ7P_-WgOwgl1qf",
       "name": "invoice",
-      "x": -1882.549865126792,
-      "y": -288.68118737180833,
+      "x": -2059.4630924819485,
+      "y": -279.87561208275633,
       "locked": false,
       "fields": [
         {
@@ -775,8 +775,8 @@
     {
       "id": "bBUricP1-ktDz-9pDufbh",
       "name": "course",
-      "x": -157.48213834895535,
-      "y": -59.986888344740464,
+      "x": -45.30792810374862,
+      "y": -55.30349814927354,
       "locked": false,
       "fields": [
         {
@@ -919,8 +919,8 @@
     {
       "id": "wkHSzUs1cY5ZfcOFTzBv_",
       "name": "course_in_order_item",
-      "x": -437.2208623073601,
-      "y": 283.19265508292136,
+      "x": -459.55548915963686,
+      "y": 268.88192498493254,
       "locked": false,
       "fields": [
         {
@@ -971,8 +971,8 @@
     {
       "id": "8H2tFJWlBTI7E1XyQ1Chh",
       "name": "user",
-      "x": -1520.5454514403884,
-      "y": -913.7225514271698,
+      "x": -1514.0915927687465,
+      "y": -898.9307883847107,
       "locked": false,
       "fields": [
         {
@@ -1134,8 +1134,8 @@
     {
       "id": "5g9bxiod-W6SLqLYVjicg",
       "name": "invoice_item",
-      "x": -2222.1094144132876,
-      "y": -282.27833295243437,
+      "x": -2414.4090149783733,
+      "y": -212.77575348960622,
       "locked": false,
       "fields": [
         {
@@ -1354,7 +1354,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": true,
           "notNull": true,
           "increment": true,
@@ -1367,7 +1367,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": false,
           "notNull": true,
           "increment": false,
@@ -1577,8 +1577,8 @@
     {
       "id": "-Y23yJ1alO-BWT4jij5mF",
       "name": "course_ingredient",
-      "x": -284.75399430599396,
-      "y": -220.5948969429715,
+      "x": -158.89706919585694,
+      "y": -241.43965787001417,
       "locked": false,
       "fields": [
         {
@@ -1586,7 +1586,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": true,
           "notNull": true,
           "increment": true,
@@ -1599,7 +1599,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": false,
           "notNull": true,
           "increment": false,
@@ -1624,7 +1624,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": true,
           "notNull": true,
           "increment": true,
@@ -1637,7 +1637,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": false,
           "notNull": true,
           "increment": false,
@@ -1662,7 +1662,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": true,
           "notNull": true,
           "increment": true,
@@ -1675,7 +1675,7 @@
           "type": "INTEGER",
           "default": "",
           "check": "",
-          "primary": true,
+          "primary": false,
           "unique": false,
           "notNull": true,
           "increment": false,
@@ -1691,8 +1691,8 @@
     {
       "id": "8La10Zl6BFtsMXlk2I4d4",
       "name": "category",
-      "x": 421.78947577932104,
-      "y": -255.4843725848798,
+      "x": 391.3775040678154,
+      "y": -244.2268654816533,
       "locked": false,
       "fields": [
         {
@@ -1743,9 +1743,9 @@
     {
       "id": "iSPn1feIMrQbU6M4ilo53",
       "name": "course_category",
-      "x": 103.18411270349253,
-      "y": -288.4187258141913,
-      "locked": true,
+      "x": 386.4323448390366,
+      "y": -453.9875928955917,
+      "locked": false,
       "fields": [
         {
           "name": "course_id",
@@ -1781,8 +1781,8 @@
     {
       "id": "uBTsOwn8Gcv9-DLRYDOtE",
       "name": "meal_plan",
-      "x": -437.5581400776778,
-      "y": 675.4570473106157,
+      "x": -358.39481564673946,
+      "y": 676.8266549997323,
       "locked": false,
       "fields": [
         {
@@ -1875,8 +1875,8 @@
     {
       "id": "wpTMWkIzyiW7iJUeFeo_a",
       "name": "meal_plan_day [UNIQUE(day_number, meal_plan_id)]",
-      "x": -803.9493845450679,
-      "y": 600.9203977891161,
+      "x": -723.1358498740718,
+      "y": 703.707784604036,
       "locked": false,
       "fields": [
         {
@@ -1927,8 +1927,8 @@
     {
       "id": "SLimfstuAeLVrGNJGh7tq",
       "name": "meal_plan_item",
-      "x": -438.56107108885544,
-      "y": 516.6318811272673,
+      "x": -384.284520521133,
+      "y": 514.3736986935043,
       "locked": false,
       "fields": [
         {
@@ -1965,8 +1965,8 @@
     {
       "id": "TKa7gn5_oo0qNLyVh78fb",
       "name": "dietician",
-      "x": -1059.3140284920853,
-      "y": 855.7315941518679,
+      "x": -930.7980601611263,
+      "y": 1061.206152584943,
       "locked": false,
       "fields": [
         {
@@ -2003,8 +2003,8 @@
     {
       "id": "5jzWZx2K6F4sMJJytGiZl",
       "name": "role",
-      "x": -1522.713963226855,
-      "y": -1134.7354630369869,
+      "x": -1203.5820096364564,
+      "y": -1032.8900990716547,
       "locked": false,
       "fields": [
         {
@@ -2077,8 +2077,8 @@
     {
       "id": "3YXYuZst0GU6v8IgrsBga",
       "name": "daily_menu_item",
-      "x": -32.3927108634,
-      "y": 1062.4047017157754,
+      "x": 105.34973658302204,
+      "y": 1064.2954284280681,
       "locked": false,
       "fields": [
         {
@@ -2129,8 +2129,8 @@
     {
       "id": "5OTaJ5IbepIp5ZmONYgFg",
       "name": "order_item_fulfillment",
-      "x": -1597.154785342327,
-      "y": 514.569457685014,
+      "x": -1598.0968081919143,
+      "y": 487.4579064536233,
       "locked": false,
       "fields": [
         {
@@ -2250,8 +2250,8 @@
     {
       "id": "tR0kws45R9HawpGzilKKQ",
       "name": "order_item_fulfillment_status",
-      "x": -1886.768371662816,
-      "y": 507.78239674010797,
+      "x": -1984.7921961248571,
+      "y": 598.66421817939,
       "locked": false,
       "fields": [
         {
@@ -2287,8 +2287,8 @@
     {
       "id": "rjbZHGDgTXBhcu645Yhv_",
       "name": "order_item_delivery",
-      "x": -1598.41523951781,
-      "y": 910.5459848135307,
+      "x": -1651.3088203701805,
+      "y": 905.728974355711,
       "locked": false,
       "fields": [
         {
@@ -2408,8 +2408,8 @@
     {
       "id": "5gBwFe_oTzPwP_yfYOTjK",
       "name": "order_item_delivery",
-      "x": -1873.2427287797545,
-      "y": 897.8444850452058,
+      "x": -2029.4782205358092,
+      "y": 1089.1552956688802,
       "locked": false,
       "fields": [
         {
@@ -2445,8 +2445,8 @@
     {
       "id": "Xb11YoyTlKf7CcXVqel8x",
       "name": "cook",
-      "x": -1900.3424935526298,
-      "y": -469.8452533668551,
+      "x": -1912.9896513843257,
+      "y": -460.2646805561564,
       "locked": false,
       "fields": [
         {
@@ -2483,8 +2483,8 @@
     {
       "id": "n_RJUKOdfQCpq8Vc2iXzu",
       "name": "courier",
-      "x": -1898.7911653366516,
-      "y": -662.9856162561803,
+      "x": -1914.7855107402859,
+      "y": -788.3949134874355,
       "locked": false,
       "fields": [
         {
@@ -2521,8 +2521,8 @@
     {
       "id": "mmBeP3v4-LZp23B-WtGdg",
       "name": "courier_type",
-      "x": -2215.6927633462024,
-      "y": -657.3777873104178,
+      "x": -2231.9743923138954,
+      "y": -725.9784300023643,
       "locked": false,
       "fields": [
         {
@@ -2558,8 +2558,8 @@
     {
       "id": "C7qeRaL_9zp8twHBtqUm9",
       "name": "cook_speciality",
-      "x": -2215.1651633827696,
-      "y": -467.3243450158899,
+      "x": -2232.983425367521,
+      "y": -481.4947738384084,
       "locked": false,
       "fields": [
         {
@@ -2595,8 +2595,8 @@
     {
       "id": "0YGjgoGw9UjneUewjfhMp",
       "name": "administrator",
-      "x": -1894.3815609833446,
-      "y": -905.9017038996672,
+      "x": -1941.9570553940725,
+      "y": -1003.0369536170621,
       "locked": false,
       "fields": [
         {
