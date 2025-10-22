@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS "course_in_order_item" (
 
 
 CREATE TABLE IF NOT EXISTS "user" (
-	"id" INTEGER,
+	"id" INTEGER NOT NULL,
 	"role_id" INTEGER NOT NULL,
 	"login" VARCHAR(50) NOT NULL UNIQUE,
 	"email" VARCHAR(255) NOT NULL,
