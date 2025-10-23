@@ -592,49 +592,102 @@ ON UPDATE NO ACTION ON DELETE NO ACTION;
 -- DODAWANIE CHECK CONSTRAINTS
 -- =================================================================
 
-ALTER TABLE "customer_address"
-ADD CONSTRAINT unique_customer_address_opinion UNIQUE ("customer_id", "address_id");
+-- ============ ADDRESS ============
+ALTER TABLE "address"
+ADD CONSTRAINT chk_address_deleted_after_created
+  CHECK (deleted_at IS NULL OR deleted_at >= created_at);
 
-ALTER TABLE "opinion"
-ADD CONSTRAINT "chk_opinion_rating" CHECK (rating >= 1 AND rating <= 5),
-ADD CONSTRAINT unique_customer_course_opinion UNIQUE ("customer_id", "course_id");
+-- ============ USER ============
+ALTER TABLE "user"
+ADD CONSTRAINT chk_user_removed_after_created
+  CHECK (date_removed IS NULL OR date_removed >= date_created),
+ADD CONSTRAINT chk_user_last_login_after_created
+  CHECK (last_login IS NULL OR last_login >= date_created::timestamp);
 
-ALTER TABLE "preference"
-ADD CONSTRAINT "chk_preference_rating" CHECK (rating >= 1 AND rating <= 10),
-ADD CONSTRAINT unique_customer_ingredient_opinion UNIQUE ("customer_id", "ingredient_id");
-
-ALTER TABLE "allergen_customer"
-ADD CONSTRAINT unique_allergen_customer_option UNIQUE ("allergen_id", "customer_id");
-
+-- ============ COURSE ============
 ALTER TABLE "course"
-ADD CONSTRAINT "chk_course_price" CHECK (price >= 0),
-ADD CONSTRAINT "chk_course_protein" CHECK (protein_100g >= 0),
-ADD CONSTRAINT "chk_course_calories" CHECK (calories_100g >= 0),
-ADD CONSTRAINT "chk_course_carbohydrates" CHECK (carbohydrates_100g >= 0),
-ADD CONSTRAINT "chk_course_fat" CHECK (fat_100g >= 0);
+ADD CONSTRAINT chk_course_updated_after_created
+  CHECK (updated_at >= created_at),
+ADD CONSTRAINT chk_course_created_not_future
+  CHECK (created_at <= now());
 
-ALTER TABLE "ingredient"
-ADD CONSTRAINT "chk_ingredient_calories" CHECK (calories_100g >= 0),
-ADD CONSTRAINT "chk_ingredient_protein" CHECK (protein_100g >= 0),
-ADD CONSTRAINT "chk_ingredient_fat" CHECK (fat_100g >= 0),
-ADD CONSTRAINT "chk_ingredient_carbohydrates" CHECK (carbohydrates_100g >= 0);
-
+-- ============ ORDER ============
 ALTER TABLE "order"
-ADD CONSTRAINT "chk_order_vat_rate" CHECK (vat_rate >= 0),
-ADD CONSTRAINT "chk_order_totals" CHECK (vat_total >= 0 AND net_total >= 0 AND gross_total >= 0);
+ADD CONSTRAINT chk_order_placed_not_future
+  CHECK (placed_at <= now());
 
+-- ============ ORDER_ITEM_FULFILLMENT ============
+ALTER TABLE "order_item_fulfillment"
+ADD CONSTRAINT chk_fulfillment_completed_after_began
+  CHECK (completed_at IS NULL OR began_at IS NULL OR completed_at >= began_at),
+ADD CONSTRAINT chk_fulfillment_last_updated_after_any
+  CHECK (
+    last_updated_at >= COALESCE(began_at, completed_at, 'epoch'::timestamp)
+  );
+
+-- ============ ORDER_ITEM_DELIVERY ============
+ALTER TABLE "order_item_delivery"
+ADD CONSTRAINT chk_delivery_delivered_after_began
+  CHECK (delivered_at IS NULL OR began_at IS NULL OR delivered_at >= began_at),
+ADD CONSTRAINT chk_delivery_last_updated_after_any
+  CHECK (
+    last_updated >= COALESCE(began_at, delivered_at, 'epoch'::timestamp)
+  );
+
+-- ============ COMPLAINT ============
 ALTER TABLE "complaint"
-ADD CONSTRAINT "chk_complaint_refund_amount" CHECK (refund_amount >= 0);
+ADD CONSTRAINT chk_complaint_resolution_after_date
+  CHECK (resolution_date IS NULL OR resolution_date >= "date"),
+ADD CONSTRAINT chk_complaint_status_resolution_consistency
+  CHECK (
+    CASE
+      WHEN status IN ('positively resolved','negatively resolved')
+        THEN resolution_date IS NOT NULL
+      WHEN status IN ('submitted','under review')
+        THEN resolution_date IS NULL
+      ELSE TRUE
+    END
+  );
 
+-- ============ INVOICE ============
 ALTER TABLE "invoice"
-ADD CONSTRAINT "chk_invoice_totals" CHECK (net_total >= 0 AND vat_total >= 0 AND gross_total >= 0);
+ADD CONSTRAINT chk_nip_seller
+  CHECK (seller_vat_id ~* '^(PL)?[0-9]{10}$'),
+ADD CONSTRAINT chk_nip_buyer
+  CHECK (buyer_vat_id IS NULL OR buyer_vat_id ~* '^(PL)?[0-9]{10}$'),
+ADD CONSTRAINT chk_currency_3
+  CHECK (currency ~ '^[A-Z]{3}$'),
+ADD CONSTRAINT chk_invoice_totals
+  CHECK (net_total >= 0 AND vat_total >= 0 AND gross_total >= 0),
+ADD CONSTRAINT chk_invoice_totals_math
+  CHECK (gross_total = net_total + vat_total),
+ADD CONSTRAINT chk_invoice_dates_chain
+  CHECK (sale_date <= issue_date AND issue_date <= payment_date),
+ADD CONSTRAINT chk_invoice_paid_has_past_payment
+  CHECK (status <> 'paid' OR payment_date <= CURRENT_DATE);
 
-ALTER TABLE "meal_plan_day"
-ADD CONSTRAINT "chk_meal_plan_day_day_number" CHECK (day_number > 0);
+-- ============ MEAL_PLAN ============
+ALTER TABLE "meal_plan"
+ADD CONSTRAINT chk_meal_plan_dates
+  CHECK (start_date IS NULL OR end_date IS NULL OR start_date <= end_date);
 
-ALTER TABLE "meal_plan_item"
-ADD CONSTRAINT unique_course_meal_plan_day_option UNIQUE ("course_id", "meal_plan_day_id");
+-- ============ ADMINISTRATOR ============
+ALTER TABLE "administrator"
+ADD CONSTRAINT chk_admin_revoked_after_granted
+  CHECK (date_revoked IS NULL OR date_revoked >= date_granted);
 
-ALTER TABLE "daily_menu_item"
-ADD CONSTRAINT "chk_daily_menu_item_sequence" CHECK (sequence > 0);
+-- ============ ORDER_ITEM ============
+ALTER TABLE "order_item"
+ADD CONSTRAINT chk_order_item_eta_reasonable
+  CHECK (expected_delivery_at >= now() - INTERVAL '1 day');
 
+-- ============ ADDRESS ============
+ALTER TABLE "address"
+ADD CONSTRAINT chk_address_postal_pl
+  CHECK (
+    CASE
+      WHEN country ILIKE 'Poland' OR country ILIKE 'Polska' OR country ILIKE 'PL'
+        THEN postal_code ~ '^[0-9]{2}-[0-9]{3}$'
+      ELSE TRUE
+    END
+  );

@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 import random
+import re
 from typing import List, Optional, Sequence, Tuple
 
 from faker import Faker
@@ -260,6 +261,22 @@ class Seeder:
             self.conn.rollback()
             raise
 
+    def _normalize_phone(self, raw: str) -> Optional[str]:
+        if not raw:
+            return None
+        digits = re.sub(r'\D', '', raw)   # wywal wszystko poza cyframi
+        if not digits:
+            return None
+        # Jeżeli zaczyna się od 48, potraktuj to jako PL z plusikiem
+        if digits.startswith('48'):
+            e164 = '+' + digits
+        else:
+            # jak chcesz mieć bardziej „smart”, dorzuć logikę krajów;
+            # na szybko: dodaj plusa i jedziemy
+            e164 = '+' + digits
+        # minimalnie 7 cyfr sensownie
+        return e164 if 7 <= len(digits) <= 15 else None
+
     def _seed_users(self, num = 1000):
         if not self.conn:
             return []
@@ -276,6 +293,8 @@ class Seeder:
 
             logins.add(login)
             emails.add(email)
+            phone_raw = fake.phone_number() if random.random() > 0.2 else None
+            phone = self._normalize_phone(phone_raw) if phone_raw else None
 
             date_created = fake.date_between(start_date='-5y', end_date='today')
             
@@ -285,7 +304,7 @@ class Seeder:
                 fake.password(length=12, special_chars=True, digits=True, upper_case=True, lower_case=True),  # password_hash (just fake string)
                 fake.first_name(),                                                      # name
                 fake.last_name(),                                                       # lastname
-                fake.phone_number() if random.random() > 0.2 else None,                 # phone_number (optional)
+                phone,                                                                  # phone_number (optional)
                 date_created,                                                           # date_created
                 fake.date_between(start_date=date_created, end_date='today') if random.random() < 0.2 else None,
                     # date_removed (optional)
@@ -450,7 +469,7 @@ class Seeder:
                 orders_ids = [row[0] for row in inserted]
                 customers_ids = [row[1] for row in inserted]
                 self.conn.commit()
-                logging.info(f"Added {len(orders_ids)} orders (without items)")
+                logging.info(f"Added {len(orders_ids)} orders")
                 return orders_ids, customers_ids
         except Exception as e:
             self.conn.rollback()
@@ -521,6 +540,17 @@ class Seeder:
 
         return orders_ids
  
+    def _generate_pl_nip(self, with_prefix: bool = False) -> str:
+        weights = [6, 5, 7, 2, 3, 4, 5, 6, 7]
+        while True:
+            digits = [random.randint(0, 9) for _ in range(9)]
+            checksum = sum(w * d for w, d in zip(weights, digits)) % 11
+            if checksum == 10:
+                continue 
+            nip_digits = digits + [checksum]
+            nip_str = ''.join(str(d) for d in nip_digits)
+            return f"PL{nip_str}" if with_prefix else nip_str
+
     def seed_invoices(self, orders_ids, invoice_rate = 0.5):
         if not self.conn or not orders_ids or len(orders_ids) <= 0:
             return []
@@ -544,31 +574,37 @@ class Seeder:
             
             sale_date = fake.date_between(start_date='-30d', end_date='today')
             issue_date = fake.date_between(start_date=sale_date, end_date='today')
-            payment_date = fake.date_between(start_date=issue_date, end_date=issue_date + timedelta(days=30))
+
+            status = random.choice(['issued', 'pending payment', 'paid', 'cancelled'])
+
+            if status == 'paid':
+                payment_date = fake.date_between(start_date=issue_date, end_date='today')
+            else:
+                payment_date = fake.date_between(start_date=issue_date, end_date=issue_date + timedelta(days=30))
             
             invoices_data.append((
                 fake.unique.bothify(text='INV-#####'),          # invoice_number
-                random.choice(['issued', 'pending payment', 'paid', 'cancelled']),  # status
-                fake.company(),                                # seller_name
-                fake.bothify(text='PL##########'),            # seller_vat_id (NIP)
-                fake.name(),                                   # buyer_name
-                fake.bothify(text='PL##########'),            # buyer_vat_id
-                random.choice(['USD', 'EUR', 'PLN']),         # currency
-                random.choice(['cash', 'card', 'transfer']),  # payment_method
-                f"{random.randint(7, 30)} days",              # payment_terms
-                sale_date,                                    # sale_date
-                payment_date,                                 # payment_date
-                issue_date,                                   # issue_date
-                vat_rate,                                     # vat_rate
-                net_total,                                    # net_total
-                vat_total,                                    # vat_total
-                gross_total,                                  # gross_total
-                order_id                                      # order_id (assuming existing orders)
+                status,                                         # status
+                fake.company(),                                 # seller_name
+                self._generate_pl_nip(),                        # seller_vat_id (NIP)
+                fake.name(),                                    # buyer_name
+                self._generate_pl_nip(),                        # buyer_vat_id
+                random.choice(['USD', 'EUR', 'PLN']),           # currency
+                random.choice(['cash', 'card', 'transfer']),    # payment_method
+                f"{random.randint(7, 30)} days",                # payment_terms
+                sale_date,                                      # sale_date
+                payment_date,                                   # payment_date
+                issue_date,                                     # issue_date
+                vat_rate,                                       # vat_rate
+                net_total,                                      # net_total
+                vat_total,                                      # vat_total
+                gross_total,                                    # gross_total
+                order_id                                        # order_id (assuming existing orders)
             ))
 
         try:
             with self.conn.cursor() as cursor:
-                inserted = psycopg2.extras.execute_values(cursor, sql_query, invoices_data)
+                psycopg2.extras.execute_values(cursor, sql_query, invoices_data)
                 self.conn.commit()
                 logging.info(f"Added {len(invoices_data)} invoices")
 
@@ -576,8 +612,6 @@ class Seeder:
             logging.error(f"Failed to add invoices due to: {e}")
             self.conn.rollback()
             raise
-
-
 
 
 
