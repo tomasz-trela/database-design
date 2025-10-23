@@ -13,7 +13,7 @@ fake = Faker('pl_PL')
 
 logging.basicConfig(
     level=logging.INFO,         
-    format='%(asctime)s - %(levelname)s - %(message)s', 
+    format='   %(levelname)s | %(message)s', 
     datefmt='%Y-%m-%d %H:%M:%S'        
 )
 
@@ -76,9 +76,11 @@ class Seeder:
                 inserted = psycopg2.extras.execute_values(cur, sql, courses_data, fetch=True)
                 ids = self._ids_from_result_or_select(cur, inserted, "course", expected_count=num)
                 self.conn.commit()
+                logging.info(f"Added {str(num)} courses")
                 return ids
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add courses")
             raise
 
     def seed_ingredients(self, num: int = 150) -> List[int]:
@@ -111,9 +113,11 @@ class Seeder:
                 inserted = psycopg2.extras.execute_values(cur, sql, ingredients_data, fetch=True)
                 ids = self._ids_from_result_or_select(cur, inserted, "ingredient", expected_count=num)
                 self.conn.commit()
+                logging.info(f"Added {str(num)} ingredients")
                 return ids
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add ingredients")
             raise
 
     def seed_course_ingredient_relations(self, course_ids: Sequence[int], ingredient_ids: Sequence[int],
@@ -136,9 +140,11 @@ class Seeder:
                     psycopg2.extras.execute_values(cur, sql, list(relations))
                     inserted = cur.rowcount
                 self.conn.commit()
+                logging.info(f"Added {str(len(relations))} coures ingredient relations")
                 return inserted
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add course ingredient relations")
             raise
 
     def seed_allergens(self, allergen_names: Optional[Sequence[str]] = None) -> List[int]:
@@ -161,9 +167,12 @@ class Seeder:
                 inserted = psycopg2.extras.execute_values(cur, sql, data, fetch=True)
                 ids = self._ids_from_result_or_select(cur, inserted, "allergen", expected_count=len(allergen_names))
                 self.conn.commit()
+                logging.info(f"Added {str(len(data))} allergens")
                 return ids
+                
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add allergens")
             raise
 
     def seed_allergen_ingredient_relations(self, ingredient_ids: Sequence[int],
@@ -184,13 +193,33 @@ class Seeder:
                     psycopg2.extras.execute_values(cur, sql, list(relations))
                     inserted = cur.rowcount
                 self.conn.commit()
+                logging.info(f"Added {str(len(relations))} allergen ingredient relations")
                 return inserted
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add allergen ingredient relations")
             raise
 
     # ===== BARTOSH =====
+    def seed_addresses(self):
+        if not self.conn:
+            return []
+        
+        sql = """
+            INSERT INTO "addresses"
+                ()
+            VALUES %s
+            RETURNING id;
+        """
 
+        try:
+            ...
+        except Exception as e:
+            logging.error(f"Failed to add addresses due to: {e}")
+            self.conn.rollback()
+            raise
+
+    
 
 
 def main():
