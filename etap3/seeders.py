@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 from typing import List, Optional, Sequence, Tuple
 
@@ -249,7 +249,6 @@ class Seeder:
 
         try:
             with self.conn.cursor() as cursor:
-                # cursor.execute('TRUNCATE TABLE "address" RESTART IDENTITY CASCADE;')
                 inserted = psycopg2.extras.execute_values(cursor, sql_query, addresses_data, fetch=True)
                 ids = self._ids_from_result_or_select(cursor, inserted, "address", expected_count=num)
                 self.conn.commit()
@@ -392,9 +391,12 @@ class Seeder:
         customers_ids = self._seed_customers(users_ids)
         
         customer_addresses_data = []
+        customers_with_addresses_ids = []
         for customer_id in customers_ids:
             if random.random() > 0.2:
-                addresses_count = random.randint(0, 5) 
+                customers_with_addresses_ids.append(customer_id)
+
+                addresses_count = random.randint(1, 5) 
                 unique_addresses_ids = random.sample(addresses_ids, addresses_count)
 
                 for address_id in unique_addresses_ids:
@@ -409,7 +411,7 @@ class Seeder:
 
         self._seed_customer_addresses(customer_addresses_data)
 
-        return customers_ids
+        return customers_with_addresses_ids
     
     def _seed_orders_without_items(self, num, customers_ids):
         if not self.conn or not customers_ids:
@@ -438,27 +440,89 @@ class Seeder:
             INSERT INTO "order"
                 (status, vat_rate, vat_total, net_total, gross_total, placed_at, customer_id)
             VALUES %s
-            RETURNING order_id;
+            RETURNING order_id, customer_id;
         """
 
         try:
             with self.conn.cursor() as cur:
                 cur.execute('TRUNCATE TABLE "order" RESTART IDENTITY CASCADE;')
                 inserted = psycopg2.extras.execute_values(cur, sql_query, orders_data, fetch=True)
-                ids = self._ids_from_result_or_select(cur, inserted, "order", expected_count=num)
+                orders_ids = [row[0] for row in inserted]
+                customers_ids = [row[1] for row in inserted]
                 self.conn.commit()
-                logging.info(f"Added {len(ids)} orders (without items)")
-                return ids
+                logging.info(f"Added {len(orders_ids)} orders (without items)")
+                return orders_ids, customers_ids
         except Exception as e:
             self.conn.rollback()
             logging.error(f"Failed to add orders: {e}")
             raise
 
+    def _get_customer_addresses(self, customer_id):
+        if not self.conn:
+            return []
 
-    def seed_orders(self, customers_ids, how_much_with_order = 0.8):
-        num = int(how_much_with_order * len(customers_ids))
-        customers_with_orders_ids = random.sample(customers_ids, num)
-        orders_ids = self._seed_orders_without_items(num, customers_with_orders_ids)
+        sql_query = """
+            SELECT address_id
+            FROM "customer_address"
+            WHERE customer_id = %s;
+        """
+
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql_query, (customer_id,))
+                rows = cur.fetchall()
+                return [row[0] for row in rows]
+        except Exception as e:
+            logging.error(f"Failed to fetch addresses for customer {customer_id}: {e}")
+            self.conn.rollback()
+            return []
+
+    def __seed_order_items(self, order_id, items_count, user_addresses, should_log = False):
+        if not self.conn or not order_id or not user_addresses or len(user_addresses) <= 0 or items_count <= 0:
+            return []
+
+        sql_query = """
+            INSERT INTO order_item 
+                (expected_delivery_at, order_id, delivery_address)
+            VALUES %s
+        """
+
+        order_items_data = []
+        for _ in range(items_count):
+            order_items_data.append((
+                fake.date_between(start_date="+1d", end_date="+30d"),
+                order_id,
+                random.choice(user_addresses),
+            ))
+      
+        try:
+            with self.conn.cursor() as cursor:
+                psycopg2.extras.execute_values(cursor, sql_query, order_items_data)
+                self.conn.commit()
+                if should_log:
+                    logging.info(f"Added {len(order_items_data)} addresses")
+
+        except Exception as e:
+            logging.error(f"Failed to add addresses due to: {e}")
+            self.conn.rollback()
+            raise
+
+
+    def seed_orders(self, customers_with_addresses_ids, how_much_with_order = 0.8, min_items = 1, max_items = 15):
+        num = int(how_much_with_order * len(customers_with_addresses_ids))
+        customers_with_orders_ids = random.sample(customers_with_addresses_ids, num)
+        orders_ids, customers_ids = self._seed_orders_without_items(num, customers_with_orders_ids)
+
+        for order_id, customer_id in zip(orders_ids, customers_ids):
+            items_count = random.randint(min_items, max_items)
+
+            user_addresses = self._get_customer_addresses(customer_id)
+
+            self.__seed_order_items(order_id, items_count, user_addresses)
+ 
+
+
+
 
 def main():
     conn = get_db_connection()
@@ -480,8 +544,9 @@ def main():
         seeder.seed_allergen_ingredient_relations(ingredient_ids, allergen_ids)
 
         # Bartosh
-        customers_ids = seeder.seed_customers_with_addresses(1000)
-        seeder.seed_orders(customers_ids=customers_ids)
+        customers_with_addresses_ids = seeder.seed_customers_with_addresses(1000)
+        seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
+        # seeder.seed_invoices()
 
     finally:
         conn.close()
