@@ -201,19 +201,39 @@ class Seeder:
             raise
 
     # ===== BARTOSH =====
-    def seed_addresses(self):
+    def seed_addresses(self, num = 100000000):
         if not self.conn:
             return []
         
-        sql = """
-            INSERT INTO "addresses"
-                ()
+        addresses_data: List[Tuple] = []
+
+        for _ in range(num):
+            addresses_data.append((
+                fake.country(),                                                             # country
+                fake.region() if random.random() > 0.3 else None,                           # region
+                fake.postcode(),                                                            # postal_code
+                fake.city(),                                                                # city
+                fake.street_name(),                                                         # street name
+                str(random.randint(1, 200)),                                                # street number
+                str(random.randint(1, 100)) if random.random() > 0.5 else None,             # apartment
+            ))
+        
+        sql_query = """
+            INSERT INTO "address"
+                (country, region, postal_code, city, street_name, street_number, apartment)
             VALUES %s
             RETURNING id;
         """
 
         try:
-            ...
+            with self.conn.cursor() as cursor:
+                cursor.execute('TRUNCATE TABLE "address" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cursor, sql_query, addresses_data, fetch=True)
+                ids = self._ids_from_result_or_select(cursor, inserted, "course", expected_count=num)
+                self.conn.commit()
+                logging.info(f"Added {num} addresses")
+                return ids
+
         except Exception as e:
             logging.error(f"Failed to add addresses due to: {e}")
             self.conn.rollback()
@@ -233,12 +253,16 @@ def main():
     seeder.truncate(["course_ingredient", "allergen_ingredient", "course", "ingredient", "allergen"])
 
     try:
+        # Tomek
         course_ids = seeder.seed_courses(100)
         ingredient_ids = seeder.seed_ingredients(200)
 
         seeder.seed_course_ingredient_relations(course_ids, ingredient_ids)
         allergen_ids = seeder.seed_allergens()
         seeder.seed_allergen_ingredient_relations(ingredient_ids, allergen_ids)
+
+        # Bartosh
+        seeder.seed_addresses(num = 1000)
 
     finally:
         conn.close()
