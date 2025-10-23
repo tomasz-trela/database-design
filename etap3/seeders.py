@@ -30,6 +30,28 @@ class Seeder:
                 cur.execute(f'TRUNCATE TABLE "{t}" RESTART IDENTITY CASCADE;')
         self.conn.commit()
 
+    def truncate_all(self):
+        with self.conn.cursor() as cur:
+            logging.info("Truncating ALL tables with CASCADE (full reset)...")
+            cur.execute("""
+                DO $$
+                DECLARE
+                    t text;
+                BEGIN
+                    -- Loop through all user tables
+                    FOR t IN
+                        SELECT tablename
+                        FROM pg_tables
+                        WHERE schemaname = 'public'
+                    LOOP
+                        EXECUTE format('TRUNCATE TABLE %I RESTART IDENTITY CASCADE;', t);
+                    END LOOP;
+                END $$;
+            """)
+            self.conn.commit()
+        logging.info("All tables truncated successfully (CASCADE mode)")
+
+
     def _ids_from_result_or_select(self, cur: psycopg2.extensions.cursor, result, table: str, expected_count: Optional[int] = None) -> List[int]:
         if result:
             return [row[0] for row in result]
@@ -67,7 +89,7 @@ class Seeder:
                 (name, description, price, protein_100g, calories_100g,
                  carbohydrates_100g, fat_100g, created_at, updated_at)
             VALUES %s
-            RETURNING id;
+            RETURNING course_id;
         """
 
         try:
@@ -104,7 +126,7 @@ class Seeder:
             INSERT INTO "ingredient"
                 (name, description, calories_100g, unit_of_measure, protein_100g, fat_100g, carbohydrates_100g)
             VALUES %s
-            RETURNING id;
+            RETURNING ingredient_id;
         """
 
         try:
@@ -159,7 +181,7 @@ class Seeder:
             ]
 
         data = [(name, fake.sentence(nb_words=8)) for name in allergen_names]
-        sql = 'INSERT INTO "allergen" (name, description) VALUES %s RETURNING id;'
+        sql = 'INSERT INTO "allergen" (name, description) VALUES %s RETURNING allergen_id;'
 
         try:
             with self.conn.cursor() as cur:
@@ -201,7 +223,7 @@ class Seeder:
             raise
 
     # ===== BARTOSH =====
-    def seed_addresses(self, num = 100000000):
+    def _seed_addresses(self, num = 1000):
         if not self.conn:
             return []
         
@@ -222,14 +244,14 @@ class Seeder:
             INSERT INTO "address"
                 (country, region, postal_code, city, street_name, street_number, apartment)
             VALUES %s
-            RETURNING id;
+            RETURNING address_id;
         """
 
         try:
             with self.conn.cursor() as cursor:
-                cursor.execute('TRUNCATE TABLE "address" RESTART IDENTITY CASCADE;')
+                # cursor.execute('TRUNCATE TABLE "address" RESTART IDENTITY CASCADE;')
                 inserted = psycopg2.extras.execute_values(cursor, sql_query, addresses_data, fetch=True)
-                ids = self._ids_from_result_or_select(cursor, inserted, "course", expected_count=num)
+                ids = self._ids_from_result_or_select(cursor, inserted, "address", expected_count=num)
                 self.conn.commit()
                 logging.info(f"Added {num} addresses")
                 return ids
@@ -239,6 +261,152 @@ class Seeder:
             self.conn.rollback()
             raise
 
+    def _seed_users(self, num = 1000):
+        if not self.conn:
+            return []
+        
+        users_data: List[Tuple] = []
+        logins = set()
+        emails = set()
+
+        while len(users_data) < num:
+            login = fake.user_name()
+            email = fake.email()
+            if login in logins or email in emails:
+                continue
+
+            logins.add(login)
+            emails.add(email)
+
+            date_created = fake.date_between(start_date='-5y', end_date='today')
+            
+            users_data.append((
+                login,                                                       # login (unique username)
+                email,                                                           # email (unique)
+                fake.password(length=12, special_chars=True, digits=True, upper_case=True, lower_case=True),  # password_hash (just fake string)
+                fake.first_name(),                                                      # name
+                fake.last_name(),                                                       # lastname
+                fake.phone_number() if random.random() > 0.2 else None,                 # phone_number (optional)
+                date_created,                                                           # date_created
+                fake.date_between(start_date=date_created, end_date='today') if random.random() < 0.2 else None,
+                    # date_removed (optional)
+                fake.date_time_between(start_date=date_created, end_date='now') if random.random() < 0.8 else None
+                    # last login
+            ))
+
+        sql_query = """
+            INSERT INTO "user"
+                (login, email, password_hash, name, surname, phone_number, date_created, date_removed, last_login)
+            VALUES %s
+            RETURNING user_id;
+        """
+
+        try:
+            with self.conn.cursor() as cursor:
+                # cursor.execute('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cursor, sql_query, users_data, fetch=True)
+                ids = self._ids_from_result_or_select(cursor, inserted, "user", expected_count=num)
+                self.conn.commit()
+                logging.info(f"Added {num} users")
+                return ids
+
+        except Exception as e:
+            logging.error(f"Failed to add users due to: {e}")
+            self.conn.rollback()
+            raise
+
+    def _seed_customers(self, users_ids):
+        if not self.conn:
+            return []
+        
+        sql_query = """
+            INSERT INTO "customer"
+                (user_id)
+            VALUES %s
+            RETURNING customer_id;
+        """
+        
+        customers_data: List[Tuple] = []
+
+        for user_id in users_ids:
+            customers_data.append((user_id,))
+
+        try:
+            with self.conn.cursor() as cursor:
+                # cursor.execute('TRUNCATE TABLE "customer" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cursor, sql_query, customers_data, fetch=True)
+                ids = self._ids_from_result_or_select(cursor, inserted, "customer")
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} customers")
+                return ids
+
+        except Exception as e:
+            logging.error(f"Failed to add customers due to: {e}")
+            self.conn.rollback()
+            raise
+
+    def _seed_customer_addresses(self, customer_addresses_data):
+        if not self.conn or not customer_addresses_data:
+            return 0
+
+        sql_query = 'INSERT INTO "customer_address" (customer_id, address_id) VALUES %s'
+
+        try:
+            with self.conn.cursor() as cursor:
+                psycopg2.extras.execute_values(cursor, sql_query, customer_addresses_data)
+                self.conn.commit()
+                logging.info(f"Added {len(customer_addresses_data)} customer addresses")
+
+        except Exception as e:
+            logging.error(f"Failed to add customer addresses due to: {e}")
+            self.conn.rollback()
+            raise
+
+    def _assing_default_address_to_customer(self, customer_id, default_address_id):
+        if not self.conn:
+            return
+        
+        sql_query = """
+            UPDATE "customer" c
+            SET default_address_id = %s
+            WHERE c.customer_id = %s
+        """
+
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql_query, (default_address_id, customer_id))
+            self.conn.commit()
+            logging.info(f"Set default address {default_address_id} for customer {customer_id}")
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to set default address for customer {customer_id}: {e}")
+            raise
+
+    def seed_customers_with_addresses(self, num = 1000):
+        if not self.conn:
+            return []
+        
+        users_ids = self._seed_users(num)
+        addresses_ids = self._seed_addresses(int(num * 3))
+        customers_ids = self._seed_customers(users_ids)
+        
+        customer_addresses_data = []
+        for customer_id in customers_ids:
+            if random.random() > 0.2:
+                addresses_count = random.randint(0, 5) 
+                unique_addresses_ids = random.sample(addresses_ids, addresses_count)
+
+                for address_id in unique_addresses_ids:
+                    customer_addresses_data.append((
+                        customer_id,
+                        address_id
+                    ))
+
+                if len(unique_addresses_ids) > 0 and random.random() > 0.2:
+                    default_address_id = random.choice(unique_addresses_ids)
+                    self._assing_default_address_to_customer(customer_id=customer_id, default_address_id=default_address_id)
+
+        self._seed_customer_addresses(customer_addresses_data)
     
 
 
@@ -250,7 +418,7 @@ def main():
 
     seeder = Seeder(conn)
 
-    seeder.truncate(["course_ingredient", "allergen_ingredient", "course", "ingredient", "allergen"])
+    seeder.truncate_all()
 
     try:
         # Tomek
@@ -262,7 +430,7 @@ def main():
         seeder.seed_allergen_ingredient_relations(ingredient_ids, allergen_ids)
 
         # Bartosh
-        seeder.seed_addresses(num = 1000)
+        customers_ids = seeder.seed_customers_with_addresses(1000)
 
     finally:
         conn.close()
