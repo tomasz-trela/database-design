@@ -1,6 +1,7 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
+import re
 from typing import List, Optional, Sequence, Tuple
 
 from faker import Faker
@@ -13,7 +14,7 @@ fake = Faker('pl_PL')
 
 logging.basicConfig(
     level=logging.INFO,         
-    format='%(asctime)s - %(levelname)s - %(message)s', 
+    format='   %(levelname)s | %(message)s', 
     datefmt='%Y-%m-%d %H:%M:%S'        
 )
 
@@ -29,6 +30,28 @@ class Seeder:
             for t in tables:
                 cur.execute(f'TRUNCATE TABLE "{t}" RESTART IDENTITY CASCADE;')
         self.conn.commit()
+
+    def truncate_all(self):
+        with self.conn.cursor() as cur:
+            logging.info("Truncating ALL tables with CASCADE (full reset)...")
+            cur.execute("""
+                DO $$
+                DECLARE
+                    t text;
+                BEGIN
+                    -- Loop through all user tables
+                    FOR t IN
+                        SELECT tablename
+                        FROM pg_tables
+                        WHERE schemaname = 'public'
+                    LOOP
+                        EXECUTE format('TRUNCATE TABLE %I RESTART IDENTITY CASCADE;', t);
+                    END LOOP;
+                END $$;
+            """)
+            self.conn.commit()
+        logging.info("All tables truncated successfully (CASCADE mode)")
+
 
     def _ids_from_result_or_select(self, cur: psycopg2.extensions.cursor, result, table: str, expected_count: Optional[int] = None) -> List[int]:
         if result:
@@ -67,7 +90,7 @@ class Seeder:
                 (name, description, price, protein_100g, calories_100g,
                  carbohydrates_100g, fat_100g, created_at, updated_at)
             VALUES %s
-            RETURNING id;
+            RETURNING course_id;
         """
 
         try:
@@ -76,9 +99,11 @@ class Seeder:
                 inserted = psycopg2.extras.execute_values(cur, sql, courses_data, fetch=True)
                 ids = self._ids_from_result_or_select(cur, inserted, "course", expected_count=num)
                 self.conn.commit()
+                logging.info(f"Added {str(num)} courses")
                 return ids
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add courses")
             raise
 
     def seed_ingredients(self, num: int = 150) -> List[int]:
@@ -102,7 +127,7 @@ class Seeder:
             INSERT INTO "ingredient"
                 (name, description, calories_100g, unit_of_measure, protein_100g, fat_100g, carbohydrates_100g)
             VALUES %s
-            RETURNING id;
+            RETURNING ingredient_id;
         """
 
         try:
@@ -111,9 +136,11 @@ class Seeder:
                 inserted = psycopg2.extras.execute_values(cur, sql, ingredients_data, fetch=True)
                 ids = self._ids_from_result_or_select(cur, inserted, "ingredient", expected_count=num)
                 self.conn.commit()
+                logging.info(f"Added {str(num)} ingredients")
                 return ids
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add ingredients")
             raise
 
     def seed_course_ingredient_relations(self, course_ids: Sequence[int], ingredient_ids: Sequence[int],
@@ -136,9 +163,11 @@ class Seeder:
                     psycopg2.extras.execute_values(cur, sql, list(relations))
                     inserted = cur.rowcount
                 self.conn.commit()
+                logging.info(f"Added {str(len(relations))} coures ingredient relations")
                 return inserted
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add course ingredient relations")
             raise
 
     def seed_allergens(self, allergen_names: Optional[Sequence[str]] = None) -> List[int]:
@@ -153,7 +182,7 @@ class Seeder:
             ]
 
         data = [(name, fake.sentence(nb_words=8)) for name in allergen_names]
-        sql = 'INSERT INTO "allergen" (name, description) VALUES %s RETURNING id;'
+        sql = 'INSERT INTO "allergen" (name, description) VALUES %s RETURNING allergen_id;'
 
         try:
             with self.conn.cursor() as cur:
@@ -161,9 +190,12 @@ class Seeder:
                 inserted = psycopg2.extras.execute_values(cur, sql, data, fetch=True)
                 ids = self._ids_from_result_or_select(cur, inserted, "allergen", expected_count=len(allergen_names))
                 self.conn.commit()
+                logging.info(f"Added {str(len(data))} allergens")
                 return ids
+                
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add allergens")
             raise
 
     def seed_allergen_ingredient_relations(self, ingredient_ids: Sequence[int],
@@ -184,12 +216,402 @@ class Seeder:
                     psycopg2.extras.execute_values(cur, sql, list(relations))
                     inserted = cur.rowcount
                 self.conn.commit()
+                logging.info(f"Added {str(len(relations))} allergen ingredient relations")
                 return inserted
         except Exception:
             self.conn.rollback()
+            logging.error("Failed to add allergen ingredient relations")
             raise
 
     # ===== BARTOSH =====
+    def _seed_addresses(self, num = 1000):
+        if not self.conn:
+            return []
+        
+        addresses_data: List[Tuple] = []
+
+        for _ in range(num):
+            addresses_data.append((
+                fake.country(),                                                             # country
+                fake.region() if random.random() > 0.3 else None,                           # region
+                fake.postcode(),                                                            # postal_code
+                fake.city(),                                                                # city
+                fake.street_name(),                                                         # street name
+                str(random.randint(1, 200)),                                                # street number
+                str(random.randint(1, 100)) if random.random() > 0.5 else None,             # apartment
+            ))
+        
+        sql_query = """
+            INSERT INTO "address"
+                (country, region, postal_code, city, street_name, street_number, apartment)
+            VALUES %s
+            RETURNING address_id;
+        """
+
+        try:
+            with self.conn.cursor() as cursor:
+                inserted = psycopg2.extras.execute_values(cursor, sql_query, addresses_data, fetch=True)
+                ids = self._ids_from_result_or_select(cursor, inserted, "address", expected_count=num)
+                self.conn.commit()
+                logging.info(f"Added {num} addresses")
+                return ids
+
+        except Exception as e:
+            logging.error(f"Failed to add addresses due to: {e}")
+            self.conn.rollback()
+            raise
+
+    def _normalize_phone(self, raw: str) -> Optional[str]:
+        if not raw:
+            return None
+        digits = re.sub(r'\D', '', raw)   # wywal wszystko poza cyframi
+        if not digits:
+            return None
+        # Jeżeli zaczyna się od 48, potraktuj to jako PL z plusikiem
+        if digits.startswith('48'):
+            e164 = '+' + digits
+        else:
+            # jak chcesz mieć bardziej „smart”, dorzuć logikę krajów;
+            # na szybko: dodaj plusa i jedziemy
+            e164 = '+' + digits
+        # minimalnie 7 cyfr sensownie
+        return e164 if 7 <= len(digits) <= 15 else None
+
+    def _seed_users(self, num = 1000):
+        if not self.conn:
+            return []
+        
+        users_data: List[Tuple] = []
+        logins = set()
+        emails = set()
+
+        while len(users_data) < num:
+            login = fake.user_name()
+            email = fake.email()
+            if login in logins or email in emails:
+                continue
+
+            logins.add(login)
+            emails.add(email)
+            phone_raw = fake.phone_number() if random.random() > 0.2 else None
+            phone = self._normalize_phone(phone_raw) if phone_raw else None
+
+            date_created = fake.date_between(start_date='-5y', end_date='today')
+            
+            users_data.append((
+                login,                                                       # login (unique username)
+                email,                                                           # email (unique)
+                fake.password(length=12, special_chars=True, digits=True, upper_case=True, lower_case=True),  # password_hash (just fake string)
+                fake.first_name(),                                                      # name
+                fake.last_name(),                                                       # lastname
+                phone,                                                                  # phone_number (optional)
+                date_created,                                                           # date_created
+                fake.date_between(start_date=date_created, end_date='today') if random.random() < 0.2 else None,
+                    # date_removed (optional)
+                fake.date_time_between(start_date=date_created, end_date='now') if random.random() < 0.8 else None
+                    # last login
+            ))
+
+        sql_query = """
+            INSERT INTO "user"
+                (login, email, password_hash, name, surname, phone_number, date_created, date_removed, last_login)
+            VALUES %s
+            RETURNING user_id;
+        """
+
+        try:
+            with self.conn.cursor() as cursor:
+                # cursor.execute('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cursor, sql_query, users_data, fetch=True)
+                ids = self._ids_from_result_or_select(cursor, inserted, "user", expected_count=num)
+                self.conn.commit()
+                logging.info(f"Added {num} users")
+                return ids
+
+        except Exception as e:
+            logging.error(f"Failed to add users due to: {e}")
+            self.conn.rollback()
+            raise
+
+    def _seed_customers(self, users_ids):
+        if not self.conn:
+            return []
+        
+        sql_query = """
+            INSERT INTO "customer"
+                (user_id)
+            VALUES %s
+            RETURNING customer_id;
+        """
+        
+        customers_data: List[Tuple] = []
+
+        for user_id in users_ids:
+            customers_data.append((user_id,))
+
+        try:
+            with self.conn.cursor() as cursor:
+                # cursor.execute('TRUNCATE TABLE "customer" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cursor, sql_query, customers_data, fetch=True)
+                ids = self._ids_from_result_or_select(cursor, inserted, "customer")
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} customers")
+                return ids
+
+        except Exception as e:
+            logging.error(f"Failed to add customers due to: {e}")
+            self.conn.rollback()
+            raise
+
+    def _seed_customer_addresses(self, customer_addresses_data):
+        if not self.conn or not customer_addresses_data:
+            return 0
+
+        sql_query = 'INSERT INTO "customer_address" (customer_id, address_id) VALUES %s'
+
+        try:
+            with self.conn.cursor() as cursor:
+                psycopg2.extras.execute_values(cursor, sql_query, customer_addresses_data)
+                self.conn.commit()
+                logging.info(f"Added {len(customer_addresses_data)} customer addresses")
+
+        except Exception as e:
+            logging.error(f"Failed to add customer addresses due to: {e}")
+            self.conn.rollback()
+            raise
+
+    def _assing_default_address_to_customer(self, customer_id, default_address_id, should_log = False):
+        if not self.conn:
+            return
+        
+        sql_query = """
+            UPDATE "customer" c
+            SET default_address_id = %s
+            WHERE c.customer_id = %s
+        """
+
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql_query, (default_address_id, customer_id))
+            self.conn.commit()
+            if should_log: 
+                logging.info(f"Set default address {default_address_id} for customer {customer_id}")
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to set default address for customer {customer_id}: {e}")
+            raise
+
+    def seed_customers_with_addresses(self, num = 1000):
+        if not self.conn:
+            return []
+        
+        users_ids = self._seed_users(num)
+        addresses_ids = self._seed_addresses(int(num * 3))
+        customers_ids = self._seed_customers(users_ids)
+        
+        customer_addresses_data = []
+        customers_with_addresses_ids = []
+        for customer_id in customers_ids:
+            if random.random() > 0.2:
+                customers_with_addresses_ids.append(customer_id)
+
+                addresses_count = random.randint(1, 5) 
+                unique_addresses_ids = random.sample(addresses_ids, addresses_count)
+
+                for address_id in unique_addresses_ids:
+                    customer_addresses_data.append((
+                        customer_id,
+                        address_id
+                    ))
+
+                if len(unique_addresses_ids) > 0 and random.random() > 0.2:
+                    default_address_id = random.choice(unique_addresses_ids)
+                    self._assing_default_address_to_customer(customer_id=customer_id, default_address_id=default_address_id)
+
+        self._seed_customer_addresses(customer_addresses_data)
+
+        return customers_with_addresses_ids
+    
+    def _seed_orders_without_items(self, num, customers_ids):
+        if not self.conn or not customers_ids:
+            return []
+
+        order_statuses = ['accepted', 'in progress', 'awaiting delivery', 'in delivery', 'delivered']
+        orders_data: List[Tuple] = []
+
+        for _ in range(num):
+            vat_rate = round(random.choice([0.05, 0.08, 0.23]), 2)
+            net_total = round(random.uniform(50, 500), 2)
+            vat_total = round(net_total * vat_rate, 2)
+            gross_total = round(net_total + vat_total, 2)
+
+            orders_data.append((
+                random.choice(order_statuses),                               # status
+                vat_rate,                                                    # vat_rate
+                vat_total,                                                   # vat_total
+                net_total,                                                   # net_total
+                gross_total,                                                 # gross_total
+                fake.date_time_between(start_date='-2y', end_date='now'),    # placed_at
+                random.choice(customers_ids)                                 # customer_id
+            ))
+
+        sql_query = """
+            INSERT INTO "order"
+                (status, vat_rate, vat_total, net_total, gross_total, placed_at, customer_id)
+            VALUES %s
+            RETURNING order_id, customer_id;
+        """
+
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute('TRUNCATE TABLE "order" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cur, sql_query, orders_data, fetch=True)
+                orders_ids = [row[0] for row in inserted]
+                customers_ids = [row[1] for row in inserted]
+                self.conn.commit()
+                logging.info(f"Added {len(orders_ids)} orders")
+                return orders_ids, customers_ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add orders: {e}")
+            raise
+
+    def _get_customer_addresses(self, customer_id):
+        if not self.conn:
+            return []
+
+        sql_query = """
+            SELECT address_id
+            FROM "customer_address"
+            WHERE customer_id = %s;
+        """
+
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql_query, (customer_id,))
+                rows = cur.fetchall()
+                return [row[0] for row in rows]
+        except Exception as e:
+            logging.error(f"Failed to fetch addresses for customer {customer_id}: {e}")
+            self.conn.rollback()
+            return []
+
+    def __seed_order_items(self, order_id, items_count, user_addresses, should_log = False):
+        if not self.conn or not order_id or not user_addresses or len(user_addresses) <= 0 or items_count <= 0:
+            return []
+
+        sql_query = """
+            INSERT INTO order_item 
+                (expected_delivery_at, order_id, delivery_address)
+            VALUES %s
+        """
+
+        order_items_data = []
+        for _ in range(items_count):
+            order_items_data.append((
+                fake.date_between(start_date="+1d", end_date="+30d"),
+                order_id,
+                random.choice(user_addresses),
+            ))
+      
+        try:
+            with self.conn.cursor() as cursor:
+                psycopg2.extras.execute_values(cursor, sql_query, order_items_data)
+                self.conn.commit()
+                if should_log:
+                    logging.info(f"Added {len(order_items_data)} addresses")
+
+        except Exception as e:
+            logging.error(f"Failed to add addresses due to: {e}")
+            self.conn.rollback()
+            raise
+
+    def seed_orders(self, customers_with_addresses_ids, how_much_with_order = 0.8, min_items = 1, max_items = 15):
+        num = int(how_much_with_order * len(customers_with_addresses_ids))
+        customers_with_orders_ids = random.sample(customers_with_addresses_ids, num)
+        orders_ids, customers_ids = self._seed_orders_without_items(num, customers_with_orders_ids)
+
+        for order_id, customer_id in zip(orders_ids, customers_ids):
+            items_count = random.randint(min_items, max_items)
+
+            user_addresses = self._get_customer_addresses(customer_id)
+
+            self.__seed_order_items(order_id, items_count, user_addresses)
+
+        return orders_ids
+ 
+    def _generate_pl_nip(self, with_prefix: bool = False) -> str:
+        weights = [6, 5, 7, 2, 3, 4, 5, 6, 7]
+        while True:
+            digits = [random.randint(0, 9) for _ in range(9)]
+            checksum = sum(w * d for w, d in zip(weights, digits)) % 11
+            if checksum == 10:
+                continue 
+            nip_digits = digits + [checksum]
+            nip_str = ''.join(str(d) for d in nip_digits)
+            return f"PL{nip_str}" if with_prefix else nip_str
+
+    def seed_invoices(self, orders_ids, invoice_rate = 0.5):
+        if not self.conn or not orders_ids or len(orders_ids) <= 0:
+            return []
+        
+        invoices_count = int(len(orders_ids) * invoice_rate)
+        orders_with_invoices_ids = random.sample(orders_ids, invoices_count)
+
+        sql_query = """
+        INSERT INTO invoice 
+            (invoice_number, status, seller_name, seller_vat_id, buyer_name, buyer_vat_id, currency, payment_method, payment_terms,
+            sale_date, payment_date, issue_date, vat_rate, net_total, vat_total, gross_total, order_id)
+        VALUES %s
+        """
+
+        invoices_data = []
+        for order_id in orders_with_invoices_ids:
+            net_total = round(random.uniform(50, 1000), 2)
+            vat_rate = round(random.choice([0.05, 0.08, 0.23]), 4)
+            vat_total = round(net_total * vat_rate, 2)
+            gross_total = round(net_total + vat_total, 2)
+            
+            sale_date = fake.date_between(start_date='-30d', end_date='today')
+            issue_date = fake.date_between(start_date=sale_date, end_date='today')
+
+            status = random.choice(['issued', 'pending payment', 'paid', 'cancelled'])
+
+            if status == 'paid':
+                payment_date = fake.date_between(start_date=issue_date, end_date='today')
+            else:
+                payment_date = fake.date_between(start_date=issue_date, end_date=issue_date + timedelta(days=30))
+            
+            invoices_data.append((
+                fake.unique.bothify(text='INV-#####'),          # invoice_number
+                status,                                         # status
+                fake.company(),                                 # seller_name
+                self._generate_pl_nip(),                        # seller_vat_id (NIP)
+                fake.name(),                                    # buyer_name
+                self._generate_pl_nip(),                        # buyer_vat_id
+                random.choice(['USD', 'EUR', 'PLN']),           # currency
+                random.choice(['cash', 'card', 'transfer']),    # payment_method
+                f"{random.randint(7, 30)} days",                # payment_terms
+                sale_date,                                      # sale_date
+                payment_date,                                   # payment_date
+                issue_date,                                     # issue_date
+                vat_rate,                                       # vat_rate
+                net_total,                                      # net_total
+                vat_total,                                      # vat_total
+                gross_total,                                    # gross_total
+                order_id                                        # order_id (assuming existing orders)
+            ))
+
+        try:
+            with self.conn.cursor() as cursor:
+                psycopg2.extras.execute_values(cursor, sql_query, invoices_data)
+                self.conn.commit()
+                logging.info(f"Added {len(invoices_data)} invoices")
+
+        except Exception as e:
+            logging.error(f"Failed to add invoices due to: {e}")
+            self.conn.rollback()
+            raise
 
 
 
@@ -201,15 +623,21 @@ def main():
 
     seeder = Seeder(conn)
 
-    seeder.truncate(["course_ingredient", "allergen_ingredient", "course", "ingredient", "allergen"])
+    seeder.truncate_all()
 
     try:
+        # Tomek
         course_ids = seeder.seed_courses(100)
         ingredient_ids = seeder.seed_ingredients(200)
 
         seeder.seed_course_ingredient_relations(course_ids, ingredient_ids)
         allergen_ids = seeder.seed_allergens()
         seeder.seed_allergen_ingredient_relations(ingredient_ids, allergen_ids)
+
+        # Bartosh
+        customers_with_addresses_ids = seeder.seed_customers_with_addresses(1000)
+        orders_ids = seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
+        seeder.seed_invoices(orders_ids=orders_ids)
 
     finally:
         conn.close()

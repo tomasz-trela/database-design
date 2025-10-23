@@ -5,3 +5,6 @@
 3. In pgAdmin build the database with schemas
 4. Fill .env with your data
 5. Run seeders from /etap3 catalog
+
+# Tip
+ChatGPT writes new seeder functions nicely if u provide the seeders.py and create_tables.sql
