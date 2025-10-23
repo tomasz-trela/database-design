@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 import random
 from typing import List, Optional, Sequence, Tuple
@@ -6,9 +7,15 @@ from faker import Faker
 import psycopg2
 import psycopg2.extras
 
-from etap3.db import get_db_connection
+from db import get_db_connection
 
 fake = Faker('pl_PL')
+
+logging.basicConfig(
+    level=logging.INFO,         
+    format='%(asctime)s - %(levelname)s - %(message)s', 
+    datefmt='%Y-%m-%d %H:%M:%S'        
+)
 
 
 class Seeder:
@@ -33,6 +40,8 @@ class Seeder:
         cur.execute(f'SELECT id FROM "{table}";')
         rows = cur.fetchall()
         return [row[0] for row in rows]
+
+    # ==== TOMEK ====
 
     def seed_courses(self, num: int = 100) -> List[int]:
         if not self.conn:
@@ -139,7 +148,7 @@ class Seeder:
         if allergen_names is None:
             allergen_names = [
                 'Gluten', 'Skorupiaki', 'Jaja', 'Ryby', 'Orzechy arachidowe',
-                'Soja', 'Mleko (laktoza)', 'Orzechy', 'Seler', 'Gorczyca',
+                'Soja', 'Mleko (lakxtoza)', 'Orzechy', 'Seler', 'Gorczyca',
                 'Nasiona sezamu', 'Dwutlenek siarki i siarczyny', 'Łubin', 'Mięczaki'
             ]
 
@@ -179,6 +188,9 @@ class Seeder:
         except Exception:
             self.conn.rollback()
             raise
+
+    # ===== BARTOSH =====
+
 
 
 def main():
