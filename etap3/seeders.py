@@ -362,7 +362,7 @@ class Seeder:
             self.conn.rollback()
             raise
 
-    def _assing_default_address_to_customer(self, customer_id, default_address_id):
+    def _assing_default_address_to_customer(self, customer_id, default_address_id, should_log = False):
         if not self.conn:
             return
         
@@ -376,7 +376,8 @@ class Seeder:
             with self.conn.cursor() as cur:
                 cur.execute(sql_query, (default_address_id, customer_id))
             self.conn.commit()
-            logging.info(f"Set default address {default_address_id} for customer {customer_id}")
+            if should_log: 
+                logging.info(f"Set default address {default_address_id} for customer {customer_id}")
         except Exception as e:
             self.conn.rollback()
             logging.error(f"Failed to set default address for customer {customer_id}: {e}")
@@ -407,8 +408,57 @@ class Seeder:
                     self._assing_default_address_to_customer(customer_id=customer_id, default_address_id=default_address_id)
 
         self._seed_customer_addresses(customer_addresses_data)
-    
 
+        return customers_ids
+    
+    def _seed_orders_without_items(self, num, customers_ids):
+        if not self.conn or not customers_ids:
+            return []
+
+        order_statuses = ['accepted', 'in progress', 'awaiting delivery', 'in delivery', 'delivered']
+        orders_data: List[Tuple] = []
+
+        for _ in range(num):
+            vat_rate = round(random.choice([0.05, 0.08, 0.23]), 2)
+            net_total = round(random.uniform(50, 500), 2)
+            vat_total = round(net_total * vat_rate, 2)
+            gross_total = round(net_total + vat_total, 2)
+
+            orders_data.append((
+                random.choice(order_statuses),                               # status
+                vat_rate,                                                    # vat_rate
+                vat_total,                                                   # vat_total
+                net_total,                                                   # net_total
+                gross_total,                                                 # gross_total
+                fake.date_time_between(start_date='-2y', end_date='now'),    # placed_at
+                random.choice(customers_ids)                                 # customer_id
+            ))
+
+        sql_query = """
+            INSERT INTO "order"
+                (status, vat_rate, vat_total, net_total, gross_total, placed_at, customer_id)
+            VALUES %s
+            RETURNING order_id;
+        """
+
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute('TRUNCATE TABLE "order" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cur, sql_query, orders_data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, "order", expected_count=num)
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} orders (without items)")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add orders: {e}")
+            raise
+
+
+    def seed_orders(self, customers_ids, how_much_with_order = 0.8):
+        num = int(how_much_with_order * len(customers_ids))
+        customers_with_orders_ids = random.sample(customers_ids, num)
+        orders_ids = self._seed_orders_without_items(num, customers_with_orders_ids)
 
 def main():
     conn = get_db_connection()
@@ -431,6 +481,7 @@ def main():
 
         # Bartosh
         customers_ids = seeder.seed_customers_with_addresses(1000)
+        seeder.seed_orders(customers_ids=customers_ids)
 
     finally:
         conn.close()
