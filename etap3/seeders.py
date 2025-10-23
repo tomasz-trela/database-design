@@ -507,7 +507,6 @@ class Seeder:
             self.conn.rollback()
             raise
 
-
     def seed_orders(self, customers_with_addresses_ids, how_much_with_order = 0.8, min_items = 1, max_items = 15):
         num = int(how_much_with_order * len(customers_with_addresses_ids))
         customers_with_orders_ids = random.sample(customers_with_addresses_ids, num)
@@ -519,7 +518,65 @@ class Seeder:
             user_addresses = self._get_customer_addresses(customer_id)
 
             self.__seed_order_items(order_id, items_count, user_addresses)
+
+        return orders_ids
  
+    def seed_invoices(self, orders_ids, invoice_rate = 0.5):
+        if not self.conn or not orders_ids or len(orders_ids) <= 0:
+            return []
+        
+        invoices_count = int(len(orders_ids) * invoice_rate)
+        orders_with_invoices_ids = random.sample(orders_ids, invoices_count)
+
+        sql_query = """
+        INSERT INTO invoice 
+            (invoice_number, status, seller_name, seller_vat_id, buyer_name, buyer_vat_id, currency, payment_method, payment_terms,
+            sale_date, payment_date, issue_date, vat_rate, net_total, vat_total, gross_total, order_id)
+        VALUES %s
+        """
+
+        invoices_data = []
+        for order_id in orders_with_invoices_ids:
+            net_total = round(random.uniform(50, 1000), 2)
+            vat_rate = round(random.choice([0.05, 0.08, 0.23]), 4)
+            vat_total = round(net_total * vat_rate, 2)
+            gross_total = round(net_total + vat_total, 2)
+            
+            sale_date = fake.date_between(start_date='-30d', end_date='today')
+            issue_date = fake.date_between(start_date=sale_date, end_date='today')
+            payment_date = fake.date_between(start_date=issue_date, end_date=issue_date + timedelta(days=30))
+            
+            invoices_data.append((
+                fake.unique.bothify(text='INV-#####'),          # invoice_number
+                random.choice(['issued', 'pending payment', 'paid', 'cancelled']),  # status
+                fake.company(),                                # seller_name
+                fake.bothify(text='PL##########'),            # seller_vat_id (NIP)
+                fake.name(),                                   # buyer_name
+                fake.bothify(text='PL##########'),            # buyer_vat_id
+                random.choice(['USD', 'EUR', 'PLN']),         # currency
+                random.choice(['cash', 'card', 'transfer']),  # payment_method
+                f"{random.randint(7, 30)} days",              # payment_terms
+                sale_date,                                    # sale_date
+                payment_date,                                 # payment_date
+                issue_date,                                   # issue_date
+                vat_rate,                                     # vat_rate
+                net_total,                                    # net_total
+                vat_total,                                    # vat_total
+                gross_total,                                  # gross_total
+                order_id                                      # order_id (assuming existing orders)
+            ))
+
+        try:
+            with self.conn.cursor() as cursor:
+                inserted = psycopg2.extras.execute_values(cursor, sql_query, invoices_data)
+                self.conn.commit()
+                logging.info(f"Added {len(invoices_data)} invoices")
+
+        except Exception as e:
+            logging.error(f"Failed to add invoices due to: {e}")
+            self.conn.rollback()
+            raise
+
 
 
 
@@ -545,8 +602,8 @@ def main():
 
         # Bartosh
         customers_with_addresses_ids = seeder.seed_customers_with_addresses(1000)
-        seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
-        # seeder.seed_invoices()
+        orders_ids = seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
+        seeder.seed_invoices(orders_ids=orders_ids)
 
     finally:
         conn.close()
