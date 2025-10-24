@@ -8,3 +8,7 @@
 
 # Tip
 ChatGPT writes new seeder functions nicely if u provide the seeders.py and create_tables.sql
+
+# SQL
+1) create_tables.sql creates all the db structure
+2) drop_all_tables.sql resets the db structure
