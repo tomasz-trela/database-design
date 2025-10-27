@@ -286,8 +286,8 @@ class Seeder:
         emails = set()
 
         while len(users_data) < num:
-            login = fake.user_name()
-            email = fake.email()
+            login = fake.unique.user_name()
+            email = fake.unique.email()
             if login in logins or email in emails:
                 continue
 
@@ -614,6 +614,288 @@ class Seeder:
             raise
 
 
+    # ===== OLA =====
+    def seed_category(self, category_names: Optional[Sequence[str]] = None) -> List[int]:
+        if not self.conn:
+            return []
+
+        if category_names is None:
+            category_names = [
+                'Śniadanie', 'Drugie Śniadanie', 'Lunch', 'Obiad', 'Podwieczorek', 'Kolacja',
+                'Deser', 'Na słodko', 'Na słono', 'Wegetariańskie', 'Wegańskie', 'Wysokoproteinowe',
+                'Bez laktozy', 'Bez glutenu', 'Insulinooporność', 'FIT', 'Włoskie', 'Azjatyckie', 
+                'Tajskie', 'Tradycyjne'
+            ]
+
+        category_data = [(name, fake.sentence(nb_words=8)) for name in category_names]
+        
+        sql = 'INSERT INTO "category" (name, description) VALUES %s RETURNING id;'
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute('TRUNCATE TABLE "category" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cur, sql, category_data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'category', expected_count=len(category_names))
+                self.conn.commit()
+                logging.info(f"Added {str(len(category_data))} categories")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add categories: {e}")
+            raise
+
+
+    def seed_course_category_relations(self, course_ids: Sequence[int], category_ids: Sequence[int], min_per_course: int = 0, max_per_course: int = 8) -> int:
+        if not self.conn or not course_ids or not category_ids:
+            return 0
+        
+        relations = set()
+        for course in course_ids:
+            k = random.randint(min_per_course, max_per_course)
+            chosen = random.sample(category_ids, k=min(k, len(category_ids)))
+            for category in chosen:
+                relations.add((course, category))
+        sql = 'INSERT INTO "course_category" (course_id, category_id) VALUES %s'
+        try:
+            with self.conn.cursor() as cur:
+                inserted = 0
+                if relations:
+                    psycopg2.extras.execute_values(cur, sql, list(relations))
+                    inserted = cur.rowcount
+                self.conn.commit()
+                logging.info(f"Added {str(len(relations))} course-category relations")
+                return inserted
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add course_category relations: {e}")
+            raise
+
+    def seed_dieticians(self, num: int = 20, certification_names: Optional[Sequence[str]] = None) -> List[int]:
+        if not self.conn:
+            return []
+
+        user_ids = self._seed_users(num)
+        if not user_ids:
+            return []
+        
+        if not certification_names:
+            certification_names = [
+                'Certyfikat', 'Studia wyższe', 'Ukonczony kurs', 'Praktyka własna', 'Certyfikacja kliniczna', 
+                'Holistyczny coach', 'Zarejstrowany dietetyk', 'Dietetyk dzieci'
+            ]
+        
+        try:
+            with self.conn.cursor() as cur:
+                data = [
+                    (uid,  f"{random.choice(certification_names)} w {fake.city()}") 
+                    for uid in user_ids
+                ]
+                
+                sql = 'INSERT INTO "dietician" (id, certification) VALUES %s RETURNING id;'
+                inserted = psycopg2.extras.execute_values(cur, sql, data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'dietician', expected_count=len(user_ids))
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} dieticians")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add dieticians: {e}")
+            raise
+
+    def seed_meal_plans(self, num: int = 50, dietician_ids: Optional[Sequence[int]] = None, probability: float = 0.2) -> List[int]:
+        if not self.conn:
+            return []
+        
+        meal_plan_data = []
+        for _ in range(num):
+            start = fake.date_between(start_date='-90d', end_date='+30d')
+            end = fake.date_between(start_date=start, end_date=start + timedelta(days=30))
+            diet_id = random.choice(dietician_ids) if dietician_ids and random.random() > probability else None
+            meal_plan_data.append((fake.word().capitalize() + ' plan', start, end, fake.sentence(nb_words=8), diet_id))
+
+        sql = 'INSERT INTO "meal_plan" (name, start_date, end_date, description, dietician_id) VALUES %s RETURNING id;'
+        try:
+            with self.conn.cursor() as cur:
+                inserted = psycopg2.extras.execute_values(cur, sql, meal_plan_data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'meal_plan', expected_count=num)
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} meal plans")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add meal plans: {e}")
+            raise
+
+    def seed_meal_plan_days_and_items(self, meal_plan_ids: Sequence[int], course_ids: Sequence[int], min_days: int = 3, max_days: int = 31,
+                                      min_items: int = 1, max_items: int = 6) -> int:
+        if not self.conn or not meal_plan_ids or not course_ids:
+            return 0
+        try:
+            total_days = 0
+            total_items = 0
+            with self.conn.cursor() as cur:
+                for mp_id in meal_plan_ids:
+                    days = random.randint(min_days, max_days)
+                    days_data = [(i + 1, mp_id) for i in range(days)]
+                    if days_data:
+                        sql_days = 'INSERT INTO "meal_plan_day" (day_number, meal_plan_id) VALUES %s RETURNING meal_plan_day_id;'
+                        inserted_days = psycopg2.extras.execute_values(cur, sql_days, days_data, fetch=True)
+                        day_ids = self._ids_from_result_or_select(cur, inserted_days, 'meal_plan_day', expected_count=days)
+                        total_days += len(day_ids)
+
+                        items_data = []
+                        for day_id in day_ids:
+                            k = random.randint(min_items, max_items)
+                            chosen = random.sample(course_ids, k=min(k, len(course_ids)))
+                            for seq, course_id in enumerate(chosen, start=1):
+                                items_data.append((course_id, day_id, seq))
+
+                        if items_data:
+                            sql_items = 'INSERT INTO "meal_plan_item" (course_id, meal_plan_day_id, sequence) VALUES %s'
+                            psycopg2.extras.execute_values(cur, sql_items, items_data)
+                            total_items += len(items_data)
+
+                self.conn.commit()
+            logging.info(f"Added {total_days} meal plan days and {total_items} items")
+            return total_items
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add meal plan days/items: {e}")
+            raise
+
+
+    def seed_daily_menus_and_items(self,  course_ids: Sequence[int], dietician_ids: Sequence[int], min_items: int = 3, max_items: int = 6, num_menus: int = 1000) -> List[int]:
+        if not self.conn or not course_ids or not dietician_ids:
+            return []
+        try:
+            with self.conn.cursor() as cur:
+                start_date = datetime.now() - timedelta(days=num_menus/1.2)
+                end_date = datetime.now() + timedelta(days=num_menus/1.4)
+                menu_dates = [fake.unique.date_between(start_date=start_date, end_date=end_date) for _ in range(num_menus)]
+                
+                menus_data = []
+                for d in menu_dates:
+                    diet_id = random.choice(dietician_ids)
+                    menus_data.append((diet_id, d))
+                sql = 'INSERT INTO "daily_menu" (dietician_id, menu_date) VALUES %s RETURNING daily_menu_id;'
+                inserted = psycopg2.extras.execute_values(cur, sql, menus_data, fetch=True)
+                menu_ids = self._ids_from_result_or_select(cur, inserted, 'daily_menu', expected_count=num_menus)
+
+                items_data = []
+                for m_id in menu_ids:
+                    k = random.randint(min_items, max_items)
+                    chosen = random.sample(course_ids, k=min(k, len(course_ids)))
+                    for seq, course_id in enumerate(chosen, start=1):
+                        items_data.append((m_id, course_id, seq))
+
+                if items_data:
+                    sql_items = 'INSERT INTO "daily_menu_item" (menu_id, course_id, sequence) VALUES %s'
+                    psycopg2.extras.execute_values(cur, sql_items, items_data)
+
+                self.conn.commit()
+                logging.info(f"Added {len(menu_ids)} daily menus and {len(items_data)} items")
+                return menu_ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add daily menus/items: {e}")
+            raise
+
+    def seed_course_in_order_item(self, order_item_ids: Sequence[int], course_item_ids: Sequence[int], min_per_item: int = 1, max_per_item: int = 8) -> List[int]:
+        if not self.conn or not order_item_ids or not course_item_ids:
+            return []
+        
+        relations = set()
+        for order in order_item_ids:
+            k = random.randint(min_per_item, max_per_item)
+            chosen = random.sample(course_item_ids, k=min(k, len(course_item_ids)))
+            for dish in chosen:
+                relations.add((dish, order))
+        sql = 'INSERT INTO "course_in_order_item" (course_id, order_item_id) VALUES %s'
+        try:
+            with self.conn.cursor() as cur:
+                if relations:
+                    inserted = psycopg2.extras.execute_values(cur, sql, list(relations))
+                    course_in_order_ids = self._ids_from_result_or_select(cur, inserted, 'course_in_order_item')
+                self.conn.commit()
+                logging.info(f"Added {str(len(course_in_order_ids))} course in order relations")
+                return course_in_order_ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add course in order relations: {e}")
+            raise
+
+
+    def seed_complaints(self, course_in_order_items_ids: Sequence[int], probability: float = 0.5) -> int:
+        if not self.conn or not course_in_order_items_ids:
+            return 0
+        try:
+            complaints_inserted = 0
+            with self.conn.cursor() as cur:
+                complaints = []
+                
+                sql = '''
+                    SELECT C.customer_id, o.placed_at
+                    FROM "customer" AS c
+                    JOIN "order" o ON o.customer_id = c.customer_id
+                    JOIN "order_item" oi ON oi.order_id = o.order_id
+                    JOIN "course_in_order_item" cioi ON cioi.order_item_id = oi.order_item_id
+                    WHERE cioi.id = ANY(%s);
+                '''
+                cur.execute(sql, (course_in_order_items_ids,))
+                mapping = cur.fetchall()                   
+                
+                for cio_id, (cust_id, order_date) in zip(course_in_order_items_ids, mapping):
+                    if random.random() > probability:
+                        continue  
+                    
+                    date = fake.date_time_between(
+                        start_date=order_date,
+                        end_date=order_date + timedelta(days=random.randint(1, 14))
+                    )
+                    status = random.choice([
+                        'submitted',
+                        'under review',
+                        'positively resolved',
+                        'negatively resolved'
+                    ])
+                    desc = fake.sentence(nb_words=12)
+                    refund = None
+                    resolution_date = None
+                    if status in ('positively resolved', 'negatively resolved'):
+                        resolution_date = fake.date_time_between(
+                            start_date=date,
+                            end_date=date + timedelta(days=random.randint(1, 64))
+                        )
+                        if status == 'positively resolved':
+                            refund = round(random.uniform(0, 1000), 2)
+
+                    complaints.append((
+                        cust_id,
+                        cio_id,
+                        date, 
+                        status,
+                        desc,
+                        refund,
+                        resolution_date
+                    ))
+
+                if complaints:
+                    sql_complaint = '''
+                        INSERT INTO "complaint" (customer_id, course_in_order_id, date, status, description, refund_amount, resolution_date)
+                        VALUES %s;
+                    '''
+                    psycopg2.extras.execute_values(cur, sql_complaint, complaints)
+                    complaints_inserted = len(complaints)
+
+                self.conn.commit()
+                logging.info(f"Added {complaints_inserted} complaints")
+                return complaints_inserted
+
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add complaints: {e}")
+            raise
+
+
 
 def main():
     conn = get_db_connection()
@@ -639,6 +921,20 @@ def main():
         orders_ids = seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
         seeder.seed_invoices(orders_ids=orders_ids)
 
+        # Ola
+        course_in_order_item_ids = seeder.seed_course_in_order_item(orders_ids, course_ids)
+        category_ids = seeder.seed_category()
+        seeder.seed_course_category_relations(course_ids, category_ids)
+        
+        dietician_ids = seeder.seed_dieticians()
+        
+        meal_plan_ids = seeder.seed_meal_plans(dietician_ids=dietician_ids)
+        seeder.seed_meal_plan_days_and_items(meal_plan_ids, course_ids)
+        
+        seeder.seed_daily_menus_and_items(course_ids, dietician_ids)
+        
+        seeder.seed_complaints(course_in_order_item_ids) 
+    
     finally:
         conn.close()
 
