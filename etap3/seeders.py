@@ -832,6 +832,10 @@ class Seeder:
             with self.conn.cursor() as cur:
                 complaints = []
                 
+                selected_ids = [cid for cid in course_in_order_items_ids if random.random() > probability]
+                if not selected_ids:
+                    return 0
+
                 sql = '''
                     SELECT C.customer_id, o.placed_at
                     FROM "customer" AS c
@@ -840,12 +844,10 @@ class Seeder:
                     JOIN "course_in_order_item" cioi ON cioi.order_item_id = oi.order_item_id
                     WHERE cioi.id = ANY(%s);
                 '''
-                cur.execute(sql, (course_in_order_items_ids,))
+                cur.execute(sql, (selected_ids,))
                 mapping = cur.fetchall()                   
                 
-                for cio_id, (cust_id, order_date) in zip(course_in_order_items_ids, mapping):
-                    if random.random() > probability:
-                        continue  
+                for cio_id, (cust_id, order_date) in zip(selected_ids, mapping):
                     
                     date = fake.date_time_between(
                         start_date=order_date,
