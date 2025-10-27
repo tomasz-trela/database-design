@@ -38,7 +38,7 @@ DROP TABLE IF EXISTS
     courier_type
 CASCADE;
 
-DROP TYPE IF EXISTS "unit_of_mesurement" CASCADE;
+DROP TYPE IF EXISTS "unit_of_measurement" CASCADE;
 DROP TYPE IF EXISTS "order_status" CASCADE;
 DROP TYPE IF EXISTS "complaint_status" CASCADE;
 DROP TYPE IF EXISTS "invoice_status" CASCADE;
