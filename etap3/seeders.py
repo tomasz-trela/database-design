@@ -907,7 +907,8 @@ def main():
 
     seeder = Seeder(conn)
 
-    seeder.truncate_all()
+    #coment it if script doesn't work
+    seeder.truncate_all() # it doesn't work for me
 
     try:
         # Tomek
