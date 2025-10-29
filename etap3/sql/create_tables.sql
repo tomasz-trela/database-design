@@ -739,3 +739,41 @@ ADD CONSTRAINT chk_address_postal_pl
       ELSE TRUE
     END
   );
+
+-- ============= COOK SPECIALTY ============
+ALTER TABLE "cook_speciality"
+ADD CONSTRAINT unique_cook_specialty
+  UNIQUE (specialty_id, cook_id);
+
+-- ============= COURIER TYPES ============
+ALTER TABLE "courier_types"
+ADD CONSTRAINT unique_courier_type_per_courier
+  UNIQUE (courier_id, courier_type_id);
+
+-- ============= COURIER TYPE ============
+ALTER TABLE "courier_type"
+ADD CONSTRAINT chk_courier_type_name_not_blank
+  CHECK (LENGTH(TRIM(name)) > 0),
+ADD CONSTRAINT unique_courier_type_name
+  UNIQUE (name);
+
+-- ============= SPECIALTY ============
+ALTER TABLE "specialty"
+ADD CONSTRAINT chk_specialty_name_not_blank
+  CHECK (LENGTH(TRIM(name)) > 0),
+ADD CONSTRAINT unique_specialty_name
+  UNIQUE (name);
+
+-- ============= ORDER ITEM FULFILLMENT STATUS ============
+ALTER TABLE "order_item_fulfillment_status"
+ADD CONSTRAINT chk_fulfillment_status_name_not_blank
+  CHECK (LENGTH(TRIM(name)) > 0),
+ADD CONSTRAINT unique_fulfillment_status_name
+  UNIQUE (name);
+
+-- ============= ORDER ITEM DELIVERY STATUS ============
+ALTER TABLE "order_item_delivery_status"
+ADD CONSTRAINT chk_delivery_status_name_not_blank
+  CHECK (LENGTH(TRIM(name)) > 0),
+ADD CONSTRAINT unique_delivery_status_name
+  UNIQUE (name);
