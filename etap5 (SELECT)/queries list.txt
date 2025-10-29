@@ -1,0 +1,15 @@
+
+Bartosz
+
+1) 20 najpopularniejszych potraw wśród klientów (i paginacja potem)
+        (COUNT, OFFSET)
+2) Spis wszystkich unikalnych statusów w systemie 
+        (UNION, DISTINCT)
+3) Liczba zamówień w każdym kwartale                                            
+        (EXTRACT, GROUP BY, COUNT)
+4) Liczba zamówień na podstawie kategorii cenowych (duże, średnie, małe)        
+        (CASE, SUM, COUNT)
+6) Średni czas pomiędzy zamówieniami każdego klienta
+        (LEAD)
+5) Wszyscy klienci i liczba adresów                                                     
+        (LEFT JOIN)
