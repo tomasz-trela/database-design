@@ -777,3 +777,13 @@ ADD CONSTRAINT chk_delivery_status_name_not_blank
   CHECK (LENGTH(TRIM(name)) > 0),
 ADD CONSTRAINT unique_delivery_status_name
   UNIQUE (name);
+
+-- ============= PREFERENCE ============
+ALTER TABLE "preference"
+ADD CONSTRAINT chk_preference_rating_range
+  CHECK (rating >= 1 AND rating <= 5);
+
+-- ============= OPINION ============
+ALTER TABLE "opinion"
+ADD CONSTRAINT chk_opinion_rating_range
+  CHECK (rating >= 1 AND rating <= 5);

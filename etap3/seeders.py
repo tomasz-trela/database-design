@@ -223,6 +223,70 @@ class Seeder:
             logging.error("Failed to add allergen ingredient relations")
             raise
 
+    def seed_preferences(self, customer_ids: Sequence[int], ingredient_ids: Sequence[int]) -> int:
+        if not self.conn or not customer_ids or not ingredient_ids:
+            return 0
+
+        preferences_data = []
+        for customer_id in customer_ids:
+            num_prefs = random.randint(0, 100)
+            k = min(num_prefs, len(ingredient_ids))
+            chosen_ingredient_ids = random.sample(ingredient_ids, k=k)
+            
+            for ingredient_id in chosen_ingredient_ids:
+                rating = random.randint(1, 5)
+                preferences_data.append((customer_id, ingredient_id, rating))
+
+        sql = 'INSERT INTO "preference" (customer_id, ingredient_id, rating) VALUES %s'
+        try:
+            with self.conn.cursor() as cur:
+                psycopg2.extras.execute_values(cur, sql, preferences_data)
+                inserted_count = cur.rowcount
+                self.conn.commit()
+                logging.info(f"Added {inserted_count} preferences")
+                return inserted_count
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add preferences: {e}")
+            raise
+
+    def seed_opinions(self, customer_ids: Sequence[int], course_ids: Sequence[int], num: int = 1500) -> int:
+        if not self.conn or not customer_ids or not course_ids:
+            return 0
+
+        opinions_data = []
+        used_combinations = set()
+        
+        max_possible_opinions = len(customer_ids) * len(course_ids)
+        num_to_generate = min(num, max_possible_opinions)
+
+        while len(opinions_data) < num_to_generate:
+            customer_id = random.choice(customer_ids)
+            course_id = random.choice(course_ids)
+
+            if (customer_id, course_id) in used_combinations:
+                continue
+
+            used_combinations.add((customer_id, course_id))
+            
+            rating = random.randint(1, 5) 
+            opinion_text = fake.sentence(nb_words=10) if random.random() < 0.75 else None
+            
+            opinions_data.append((course_id, customer_id, rating, opinion_text))
+
+        sql = 'INSERT INTO "opinion" (course_id, customer_id, rating, opinion) VALUES %s'
+        try:
+            with self.conn.cursor() as cur:
+                psycopg2.extras.execute_values(cur, sql, opinions_data)
+                inserted_count = cur.rowcount
+                self.conn.commit()
+                logging.info(f"Added {inserted_count} opinions")
+                return inserted_count
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add opinions: {e}")
+            raise
+
     # ===== BARTOSH =====
     def _seed_addresses(self, num = 1000):
         if not self.conn:
@@ -1189,7 +1253,7 @@ def main():
     seeder = Seeder(conn)
 
     #coment it if script doesn't work
-    seeder.truncate_all() # it doesn't work for me
+    # seeder.truncate_all() # it doesn't work for me
 
     try:
         # Tomek
@@ -1204,6 +1268,11 @@ def main():
         customers_with_addresses_ids = seeder.seed_customers_with_addresses(1000)
         orders_ids = seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
         seeder.seed_invoices(orders_ids=orders_ids)
+
+        if customers_with_addresses_ids and ingredient_ids:
+            seeder.seed_preferences(customers_with_addresses_ids, ingredient_ids)
+        if customers_with_addresses_ids and course_ids:
+            seeder.seed_opinions(customers_with_addresses_ids, course_ids, num=1500)
 
         # Ola
         course_in_order_item_ids = seeder.seed_course_in_order_item(orders_ids, course_ids)
