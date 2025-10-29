@@ -896,6 +896,287 @@ class Seeder:
             self.conn.rollback()
             logging.error(f"Failed to add complaints: {e}")
             raise
+  
+    # ===== MARIUSZ =====
+    def seed_cooks(self, num: int = 50) -> List[int]:
+        if not self.conn:
+            return []
+        
+        user_ids = self._seed_users(num)
+        if not user_ids:
+            return []
+        cook_data = [(uid,) for uid in user_ids]
+        sql = 'INSERT INTO "cook" (cook_id) VALUES %s RETURNING cook_id;'
+        
+        try:
+            with self.conn.cursor() as cur:
+                inserted = psycopg2.extras.execute_values(cur, sql, cook_data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'cook', expected_count=len(user_ids))
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} cooks")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add cooks: {e}")
+            raise
+
+    def seed_couriers(self, num: int = 50) -> List[int]:
+        if not self.conn:
+            return []
+        user_ids = self._seed_users(num)
+        if not user_ids:
+            return []
+        courier_data = [(uid,) for uid in user_ids]
+        sql = 'INSERT INTO "courier" (courier_id) VALUES %s RETURNING courier_id;'
+        try:
+            with self.conn.cursor() as cur:
+                inserted = psycopg2.extras.execute_values(cur, sql, courier_data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'courier', expected_count=len(user_ids))
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} couriers")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add couriers: {e}")
+            raise
+
+    def seed_courier_types(self, type_names: Optional[Sequence[str]] = None) -> List[int]:
+        if not self.conn:
+            return []
+        
+        if type_names is None:
+            type_names = ['Rower', 'Hulajnoga', 'Motor', 'Samochód', 'Pieszo']
+
+        data = [(name,) for name in type_names]
+        sql = 'INSERT INTO "courier_type" (name) VALUES %s RETURNING courier_type_id;'
+        
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute('TRUNCATE TABLE "courier_type" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cur, sql, data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'courier_type', expected_count=len(type_names))
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} courier types")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add courier types: {e}")
+            raise
+
+    def seed_specialties(self, specialty_names: Optional[Sequence[str]] = None) -> List[int]:
+        if not self.conn:
+            return []
+
+        if specialty_names is None:
+            specialty_names = ['Włoska', 'Azjatycka', 'Meksykańska', 'Polska', 'Wege', 'Desery']
+        
+        data = [(name,) for name in specialty_names]
+        sql = 'INSERT INTO "specialty" (name) VALUES %s RETURNING id;'
+        
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute('TRUNCATE TABLE "specialty" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cur, sql, data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'specialty', expected_count=len(specialty_names))
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} specialties")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add specialties: {e}")
+            raise
+
+    def seed_courier_types_relations(self, courier_ids: Sequence[int], type_ids: Sequence[int], min_types: int = 1, max_types: int = 3) -> int:
+        if not self.conn or not courier_ids or not type_ids:
+            return 0
+
+        relations = set()
+        for courier_id in courier_ids:
+            k = random.randint(min_types, max_types)
+            chosen_types = random.sample(type_ids, k=min(k, len(type_ids)))
+            for type_id in chosen_types:
+                relations.add((courier_id, type_id))
+
+        sql = 'INSERT INTO "courier_types" (courier_id, courier_type_id) VALUES %s'
+        try:
+            with self.conn.cursor() as cur:
+                inserted_count = 0
+                if relations:
+                    psycopg2.extras.execute_values(cur, sql, list(relations))
+                    inserted_count = cur.rowcount
+                self.conn.commit()
+                logging.info(f"Added {inserted_count} courier-type relations")
+                return inserted_count
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add courier-type relations: {e}")
+            raise
+
+    def seed_cook_specialty_relations(self, cook_ids: Sequence[int], specialty_ids: Sequence[int], min_specialties: int = 1, max_specialties: int = 4) -> int:
+        if not self.conn or not cook_ids or not specialty_ids:
+            return 0
+
+        relations = set()
+        for cook_id in cook_ids:
+            k = random.randint(min_specialties, max_specialties)
+            chosen_specialties = random.sample(specialty_ids, k=min(k, len(specialty_ids)))
+            for specialty_id in chosen_specialties:
+                relations.add((specialty_id, cook_id))
+
+        sql = 'INSERT INTO "cook_speciality" (specialty_id, cook_id) VALUES %s'
+        try:
+            with self.conn.cursor() as cur:
+                inserted_count = 0
+                if relations:
+                    psycopg2.extras.execute_values(cur, sql, list(relations))
+                    inserted_count = cur.rowcount
+                self.conn.commit()
+                logging.info(f"Added {inserted_count} cook-specialty relations")
+                return inserted_count
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add cook-specialty relations: {e}")
+            raise
+
+    def seed_administrators(self, num: int = 5) -> List[int]:
+        if not self.conn:
+            return []
+        user_ids = self._seed_users(num)
+        if not user_ids:
+            return []
+        admin_data = []
+        for uid in user_ids:
+            date_granted = fake.date_between(start_date='-5y', end_date='-30d')
+            date_revoked = fake.date_between(start_date=date_granted, end_date='today') if random.random() < 0.1 else None
+            admin_data.append((uid, date_granted, date_revoked))
+        sql = 'INSERT INTO "administrator" (user_id, date_granted, date_revoked) VALUES %s RETURNING user_id;'
+        try:
+            with self.conn.cursor() as cur:
+                inserted = psycopg2.extras.execute_values(cur, sql, admin_data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'administrator', expected_count=len(user_ids))
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} administrators")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add administrators: {e}")
+            raise
+
+    def seed_fulfillment_statuses(self) -> List[int]:
+        if not self.conn:
+            return []
+        status_names = ['Pending', 'In Preparation', 'Ready for Delivery', 'Cancelled']
+        data = [(name,) for name in status_names]
+        sql = 'INSERT INTO "order_item_fulfillment_status" (name) VALUES %s RETURNING id;'
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute('TRUNCATE TABLE "order_item_fulfillment_status" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cur, sql, data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'order_item_fulfillment_status', expected_count=len(status_names))
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} fulfillment statuses")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add fulfillment statuses: {e}")
+            raise
+
+    def seed_delivery_statuses(self) -> List[int]:
+        if not self.conn:
+            return []
+        status_names = ['Pending Pickup', 'Picked Up', 'En Route', 'Delivered', 'Failed Delivery']
+        data = [(name,) for name in status_names]
+        sql = 'INSERT INTO "order_item_delivery_status" (name) VALUES %s RETURNING id;'
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute('TRUNCATE TABLE "order_item_delivery_status" RESTART IDENTITY CASCADE;')
+                inserted = psycopg2.extras.execute_values(cur, sql, data, fetch=True)
+                ids = self._ids_from_result_or_select(cur, inserted, 'order_item_delivery_status', expected_count=len(status_names))
+                self.conn.commit()
+                logging.info(f"Added {len(ids)} delivery statuses")
+                return ids
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to add delivery statuses: {e}")
+            raise
+
+    def seed_order_item_fulfillment_and_delivery(self, order_item_ids: Sequence[int], cook_ids: Sequence[int], courier_ids: Sequence[int], fulfillment_status_ids: Sequence[int], delivery_status_ids: Sequence[int]) -> Tuple[int, int]:
+        if not self.conn or not order_item_ids:
+            return 0, 0
+        fulfillment_data = []
+        delivery_data = []
+        status_map_fulfillment = {
+            'Pending': 1, 'In Preparation': 2, 'Ready for Delivery': 3, 'Cancelled': 4
+        }
+        status_map_delivery = {
+            'Pending Pickup': 1, 'Picked Up': 2, 'En Route': 3, 'Delivered': 4, 'Failed Delivery': 5
+        }
+        for item_id in order_item_ids:
+            cook_id = random.choice(cook_ids) if cook_ids else None
+            current_fulfillment_status = random.choice(list(status_map_fulfillment.keys()))
+            f_status_id = status_map_fulfillment[current_fulfillment_status]
+            began_at = fake.date_time_between(start_date='-7d', end_date='now')
+            completed_at = None
+            if current_fulfillment_status in ['Ready for Delivery', 'Cancelled']:
+                completed_at = fake.date_time_between(start_date=began_at, end_date='now')
+            last_updated_at = completed_at if completed_at else began_at
+            fulfillment_data.append((
+                cook_id, item_id, f_status_id, began_at, completed_at, last_updated_at, fake.word() if random.random() < 0.1 else None
+            ))
+            if current_fulfillment_status == 'Ready for Delivery':
+                courier_id = random.choice(courier_ids) if courier_ids else None
+                current_delivery_status = random.choice(list(status_map_delivery.keys()))
+                d_status_id = status_map_delivery[current_delivery_status]
+
+                d_began_at = fake.date_time_between(start_date=completed_at, end_date='now')
+                delivered_at = None
+                if current_delivery_status in ['Delivered', 'Failed Delivery']:
+                    delivered_at = fake.date_time_between(start_date=d_began_at, end_date='now')
+                last_updated = delivered_at if delivered_at else d_began_at 
+                delivery_data.append((
+                    courier_id, item_id, d_status_id, d_began_at, delivered_at, last_updated, fake.word() if random.random() < 0.1 else None
+                ))
+        sql_fulfillment = """
+            INSERT INTO "order_item_fulfillment" (cook_id, order_item_id, status_id, began_at, completed_at, last_updated_at, notes)
+            VALUES %s
+        """
+        sql_delivery = """
+            INSERT INTO "order_item_delivery" (courier_id, order_item_id, status_id, began_at, delivered_at, last_updated, notes)
+            VALUES %s
+        """
+        try:
+            with self.conn.cursor() as cur:
+                f_count = 0
+                if fulfillment_data:
+                    psycopg2.extras.execute_values(cur, sql_fulfillment, fulfillment_data)
+                    f_count = cur.rowcount
+                d_count = 0
+                if delivery_data:
+                    psycopg2.extras.execute_values(cur, sql_delivery, delivery_data)
+                    d_count = cur.rowcount
+                self.conn.commit()
+                logging.info(f"Added {f_count} fulfillment records and {d_count} delivery records")
+                return f_count, d_count
+        except Exception as e:
+            self.conn.rollback()
+            logging.error(f"Failed to seed fulfillment/delivery: {e}")
+            raise
+            
+    def get_order_item_ids(self) -> List[int]:
+        if not self.conn:
+            return []
+        sql = 'SELECT order_item_id FROM "order_item";'
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql)
+                rows = cur.fetchall()
+                ids = [row[0] for row in rows]
+                logging.info(f"Fetched {len(ids)} order item IDs")
+                return ids
+        except Exception as e:
+            logging.error(f"Failed to fetch order item IDs: {e}")
+            self.conn.rollback()
+            return []
 
 
 
@@ -937,6 +1218,28 @@ def main():
         seeder.seed_daily_menus_and_items(course_ids, dietician_ids)
         
         seeder.seed_complaints(course_in_order_item_ids) 
+        
+        # Mariusz
+        cook_ids = seeder.seed_cooks(25)
+        courier_ids = seeder.seed_couriers(30)
+        seeder.seed_administrators(5)
+        
+        fulfillment_status_ids = seeder.seed_fulfillment_statuses()
+        delivery_status_ids = seeder.seed_delivery_statuses()
+
+        courier_type_ids = seeder.seed_courier_types()
+        specialty_ids = seeder.seed_specialties()
+
+        seeder.seed_courier_types_relations(courier_ids, courier_type_ids)
+        seeder.seed_cook_specialty_relations(cook_ids, specialty_ids)
+        
+        seeder.seed_order_item_fulfillment_and_delivery(
+            seeder.get_order_item_ids(), 
+            cook_ids, 
+            courier_ids, 
+            fulfillment_status_ids, 
+            delivery_status_ids
+        )
     
     finally:
         conn.close()
