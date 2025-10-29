@@ -925,10 +925,11 @@ class Seeder:
                     ])
                     desc = fake.sentence(nb_words=12)
                     refund = None
+                    
                     resolution_date = None
                     if status in ('positively resolved', 'negatively resolved'):
                         resolution_date = fake.date_time_between(
-                            start_date=date,
+                            start_date=date + timedelta(seconds=1), 
                             end_date=date + timedelta(days=random.randint(1, 64))
                         )
                         if status == 'positively resolved':
@@ -1183,6 +1184,7 @@ class Seeder:
             completed_at = None
             if current_fulfillment_status in ['Ready for Delivery', 'Cancelled']:
                 completed_at = fake.date_time_between(start_date=began_at, end_date='now')
+
             last_updated_at = completed_at if completed_at else began_at
             fulfillment_data.append((
                 cook_id, item_id, f_status_id, began_at, completed_at, last_updated_at, fake.word() if random.random() < 0.1 else None
@@ -1192,13 +1194,17 @@ class Seeder:
                 current_delivery_status = random.choice(list(status_map_delivery.keys()))
                 d_status_id = status_map_delivery[current_delivery_status]
 
-                d_began_at = fake.date_time_between(start_date=completed_at, end_date='now')
-                delivered_at = None
-                if current_delivery_status in ['Delivered', 'Failed Delivery']:
-                    delivered_at = fake.date_time_between(start_date=d_began_at, end_date='now')
-                last_updated = delivered_at if delivered_at else d_began_at 
+                began_at = fake.date_time_between(start_date='-7d', end_date='now')
+                completed_at = None
+                if current_fulfillment_status in ['Ready for Delivery', 'Cancelled']:
+                    # Ensure completed_at is after began_at, if it's generated
+                    completed_at = fake.date_time_between(start_date=began_at + timedelta(seconds=1), end_date='now')
+
+                last_updated_at = completed_at if completed_at else began_at
+
+
                 delivery_data.append((
-                    courier_id, item_id, d_status_id, d_began_at, delivered_at, last_updated, fake.word() if random.random() < 0.1 else None
+                    courier_id, item_id, d_status_id, began_at, completed_at, last_updated_at, fake.word() if random.random() < 0.1 else None
                 ))
         sql_fulfillment = """
             INSERT INTO "order_item_fulfillment" (cook_id, order_item_id, status_id, began_at, completed_at, last_updated_at, notes)
@@ -1253,26 +1259,26 @@ def main():
     seeder = Seeder(conn)
 
     #coment it if script doesn't work
-    # seeder.truncate_all() # it doesn't work for me
+    seeder.truncate_all() # it doesn't work for me
 
     try:
         # Tomek
-        course_ids = seeder.seed_courses(100)
-        ingredient_ids = seeder.seed_ingredients(200)
+        course_ids = seeder.seed_courses(150)
+        ingredient_ids = seeder.seed_ingredients(1000)
 
         seeder.seed_course_ingredient_relations(course_ids, ingredient_ids)
         allergen_ids = seeder.seed_allergens()
         seeder.seed_allergen_ingredient_relations(ingredient_ids, allergen_ids)
 
         # Bartosh
-        customers_with_addresses_ids = seeder.seed_customers_with_addresses(1000)
+        customers_with_addresses_ids = seeder.seed_customers_with_addresses(10000)
         orders_ids = seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
         seeder.seed_invoices(orders_ids=orders_ids)
 
         if customers_with_addresses_ids and ingredient_ids:
             seeder.seed_preferences(customers_with_addresses_ids, ingredient_ids)
         if customers_with_addresses_ids and course_ids:
-            seeder.seed_opinions(customers_with_addresses_ids, course_ids, num=1500)
+            seeder.seed_opinions(customers_with_addresses_ids, course_ids, num=10000)
 
         # Ola
         course_in_order_item_ids = seeder.seed_course_in_order_item(orders_ids, course_ids)
