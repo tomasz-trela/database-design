@@ -2,14 +2,16 @@
 Bartosz
 
 1) 20 najpopularniejszych potraw wśród klientów (i paginacja potem)
-        (COUNT, OFFSET)
+        (OFFSET)
 2) Spis wszystkich unikalnych statusów w systemie 
-        (UNION, DISTINCT)
+        (UNION ALL, UPPER, unnest, enum_range)
 3) Liczba zamówień w każdym kwartale                                            
-        (EXTRACT, GROUP BY, COUNT)
+        (to_char)
 4) Liczba zamówień na podstawie kategorii cenowych (duże, średnie, małe)        
-        (CASE, SUM, COUNT)
-6) Średni czas pomiędzy zamówieniami każdego klienta
-        (LEAD)
-5) Wszyscy klienci i liczba adresów                                                     
-        (LEFT JOIN)
+        (double WITH, CASE - WHEN, array_position)
+5) Średni czas pomiędzy zamówieniami klientów, którzy mają przynajmniej 2 zamówienia
+        (LEAD ... OVER, PARTITION BY, to_char)
+6) Wszyscy klienci i liczba adresów                                                     
+        (many LEFT JOIN and JOIN)
+7) Średnia, mediana i max liczby adresów wśród klientów
+        (percentile_cont, WITHIN GROUP)
