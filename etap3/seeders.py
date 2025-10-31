@@ -568,6 +568,7 @@ class Seeder:
             INSERT INTO order_item 
                 (expected_delivery_at, order_id, delivery_address)
             VALUES %s
+            RETURNING order_item_id;
         """
 
         order_items_data = []
@@ -580,13 +581,15 @@ class Seeder:
       
         try:
             with self.conn.cursor() as cursor:
-                psycopg2.extras.execute_values(cursor, sql_query, order_items_data)
+                inserted = psycopg2.extras.execute_values(cursor, sql_query, order_items_data, fetch = True)
+                order_items_ids =  [row[0] for row in inserted]
                 self.conn.commit()
                 if should_log:
-                    logging.info(f"Added {len(order_items_data)} addresses")
+                    logging.info(f"Added {len(order_items_data)} order items")
+                return order_items_ids
 
         except Exception as e:
-            logging.error(f"Failed to add addresses due to: {e}")
+            logging.error(f"Failed to add  order items due to: {e}")
             self.conn.rollback()
             raise
 
@@ -595,14 +598,15 @@ class Seeder:
         customers_with_orders_ids = random.sample(customers_with_addresses_ids, num)
         orders_ids, customers_ids = self._seed_orders_without_items(num, customers_with_orders_ids)
 
+        order_items_ids = []
         for order_id, customer_id in zip(orders_ids, customers_ids):
             items_count = random.randint(min_items, max_items)
 
             user_addresses = self._get_customer_addresses(customer_id)
 
-            self.__seed_order_items(order_id, items_count, user_addresses)
+            order_items_ids.extend(self.__seed_order_items(order_id, items_count, user_addresses))
 
-        return orders_ids
+        return orders_ids, order_items_ids
  
     def _generate_pl_nip(self, with_prefix: bool = False) -> str:
         weights = [6, 5, 7, 2, 3, 4, 5, 6, 7]
@@ -706,7 +710,6 @@ class Seeder:
             self.conn.rollback()
             logging.error(f"Failed to add categories: {e}")
             raise
-
 
     def seed_course_category_relations(self, course_ids: Sequence[int], category_ids: Sequence[int], min_per_course: int = 0, max_per_course: int = 8) -> int:
         if not self.conn or not course_ids or not category_ids:
@@ -1271,8 +1274,8 @@ def main():
         seeder.seed_allergen_ingredient_relations(ingredient_ids, allergen_ids)
 
         # Bartosh
-        customers_with_addresses_ids = seeder.seed_customers_with_addresses(10000)
-        orders_ids = seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
+        customers_with_addresses_ids = seeder.seed_customers_with_addresses(5000)
+        orders_ids, order_items_ids = seeder.seed_orders(customers_with_addresses_ids=customers_with_addresses_ids)
         seeder.seed_invoices(orders_ids=orders_ids)
 
         if customers_with_addresses_ids and ingredient_ids:
@@ -1281,7 +1284,7 @@ def main():
             seeder.seed_opinions(customers_with_addresses_ids, course_ids, num=10000)
 
         # Ola
-        course_in_order_item_ids = seeder.seed_course_in_order_item(orders_ids, course_ids)
+        course_in_order_item_ids = seeder.seed_course_in_order_item(order_items_ids, course_ids)
         category_ids = seeder.seed_category()
         seeder.seed_course_category_relations(course_ids, category_ids)
         
