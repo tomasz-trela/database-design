@@ -15,3 +15,8 @@ Bartosz
         (many LEFT JOIN and JOIN)
 7) Średnia, mediana i max liczby adresów wśród klientów
         (percentile_cont, WITHIN GROUP)
+
+8) Statystyki dotyczące reklamacji z podziałem na poszczególne dania (liczba skarg, ilość rozpatrzonych/nierozpatrzonych reklamacji, średni zwrot)
+9) Podsumowanie czasu, który minął od ostatniego zamówienia dla wszystkich klientów (uwzględnia też tych, którzy nigdy nie złożyli zamówienia).
+10) Podsumowanie tego w jaki dzień tygodnia i o jakiej porze jest najwięcej zamówień.
+11) Liczba zrealizowanych dostaw w danych przedziałach czasowych dla kurierów.
