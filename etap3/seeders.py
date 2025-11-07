@@ -876,11 +876,12 @@ class Seeder:
             chosen = random.sample(course_item_ids, k=min(k, len(course_item_ids)))
             for dish in chosen:
                 relations.add((dish, order))
-        sql = 'INSERT INTO "course_in_order_item" (course_id, order_item_id) VALUES %s'
+        sql = 'INSERT INTO "course_in_order_item" (course_id, order_item_id) VALUES %s RETURNING id'
         try:
             with self.conn.cursor() as cur:
+                course_in_order_ids = []
                 if relations:
-                    inserted = psycopg2.extras.execute_values(cur, sql, list(relations))
+                    inserted = psycopg2.extras.execute_values(cur, sql, list(relations), fetch=True)
                     course_in_order_ids = self._ids_from_result_or_select(cur, inserted, 'course_in_order_item')
                 self.conn.commit()
                 logging.info(f"Added {str(len(course_in_order_ids))} course in order relations")
@@ -891,7 +892,7 @@ class Seeder:
             raise
 
 
-    def seed_complaints(self, course_in_order_items_ids: Sequence[int], probability: float = 0.5) -> int:
+    def seed_complaints(self, course_in_order_items_ids: Sequence[int], probability: float = 0.01) -> int:
         if not self.conn or not course_in_order_items_ids:
             return 0
         try:
@@ -899,22 +900,29 @@ class Seeder:
             with self.conn.cursor() as cur:
                 complaints = []
                 
-                selected_ids = [cid for cid in course_in_order_items_ids if random.random() > probability]
+                # POPRAWIONA LINIA: zmieniono '>' na '<', aby generować skargi z małym prawdopodobieństwem
+                selected_ids = [cid for cid in course_in_order_items_ids if random.random() < probability]
                 if not selected_ids:
+                    logging.info("No complaints were generated based on the probability.")
                     return 0
 
+                # Zapytanie SQL może zwracać mniej wierszy niż jest w `selected_ids`, jeśli dane są niespójne
                 sql = '''
-                    SELECT C.customer_id, o.placed_at
-                    FROM "customer" AS c
-                    JOIN "order" o ON o.customer_id = c.customer_id
-                    JOIN "order_item" oi ON oi.order_id = o.order_id
-                    JOIN "course_in_order_item" cioi ON cioi.order_item_id = oi.order_item_id
+                    SELECT cioi.id, C.customer_id, o.placed_at
+                    FROM "course_in_order_item" AS cioi
+                    JOIN "order_item" oi ON cioi.order_item_id = oi.order_item_id
+                    JOIN "order" o ON oi.order_id = o.order_id
+                    JOIN "customer" c ON o.customer_id = c.customer_id
                     WHERE cioi.id = ANY(%s);
                 '''
                 cur.execute(sql, (selected_ids,))
-                mapping = cur.fetchall()                   
+                mapping = {row[0]: (row[1], row[2]) for row in cur.fetchall()}              
                 
-                for cio_id, (cust_id, order_date) in zip(selected_ids, mapping):
+                for cio_id in selected_ids:
+                    if cio_id not in mapping:
+                        continue # Pomiń, jeśli nie znaleziono dopasowania w bazie danych
+                    
+                    cust_id, order_date = mapping[cio_id]
                     
                     date = fake.date_time_between(
                         start_date=order_date,

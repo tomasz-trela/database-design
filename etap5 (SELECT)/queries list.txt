@@ -23,7 +23,7 @@ Bartosz
 
 Tomek
 
-12) Średni czas realizacji zamówienia
+12) Łączna kwota którą klienci zostawili na przestrzeni ostatniego roku
 13) Najpopularniejsze dania
 14) Ranking kucharzy według szybkości i jakości realizacji
 15) Dni, w których kuchnia była przeciążona
