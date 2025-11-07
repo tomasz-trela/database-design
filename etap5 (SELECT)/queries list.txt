@@ -20,3 +20,10 @@ Bartosz
 9) Podsumowanie czasu, który minął od ostatniego zamówienia dla wszystkich klientów (uwzględnia też tych, którzy nigdy nie złożyli zamówienia).
 10) Podsumowanie tego w jaki dzień tygodnia i o jakiej porze jest najwięcej zamówień.
 11) Liczba zrealizowanych dostaw w danych przedziałach czasowych dla kurierów.
+
+Tomek
+
+12) Średni czas realizacji zamówienia
+13) Najpopularniejsze dania
+14) Ranking kucharzy według szybkości i jakości realizacji
+15) Dni, w których kuchnia była przeciążona
