@@ -3,15 +3,15 @@ Bartosz
 
 1) 20 najpopularniejszych potraw wśród klientów (i paginacja potem)
         (OFFSET)
-2) Spis wszystkich unikalnych statusów w systemie 
+2) Spis wszystkich unikalnych statusów w systemie
         (UNION ALL, UPPER, unnest, enum_range)
-3) Liczba zamówień w każdym kwartale                                            
+3) Liczba zamówień w każdym kwartale
         (to_char)
-4) Liczba zamówień na podstawie kategorii cenowych (duże, średnie, małe)        
+4) Liczba zamówień na podstawie kategorii cenowych (duże, średnie, małe)
         (double WITH, CASE - WHEN, array_position)
 5) Średni czas pomiędzy zamówieniami klientów, którzy mają przynajmniej 2 zamówienia
         (LEAD ... OVER, PARTITION BY, to_char)
-6) Wszyscy klienci i liczba adresów                                                     
+6) Wszyscy klienci i liczba adresów
         (many LEFT JOIN and JOIN)
 7) Średnia, mediana i max liczby adresów wśród klientów
         (percentile_cont, WITHIN GROUP)
@@ -29,3 +29,11 @@ Tomek
 13) Najpopularniejsze dania
 14) Ranking kucharzy według szybkości i jakości realizacji
 15) Dni, w których kuchnia była przeciążona
+
+Mariusz
+
+16) Składniki generujące najwięcej reklamacji
+17) Lista najpopularniejszych par dań.
+18) Analiza segmentów RFM klientów.
+19) Dania wysoko oceniane ale rzadko zamawiane (kandydaci na promocję marketingową)
+20) Prognoza przychodów na najbliższy tydzień
