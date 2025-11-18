@@ -1,0 +1,6 @@
+Quick no need for optimalization (maybe in the future)
+Added index to sort on order by 3 params
+Seq scan -> index scan (slightly faster), could be visible if more users
+
+Added indexes on foreign keys as this tables will be often used and could improve perf if they grow big
+For now they are not even used

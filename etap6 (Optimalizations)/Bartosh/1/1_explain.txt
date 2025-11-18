@@ -1,0 +1,1 @@
+Changing the structure (moving GROUP BY inside WITH) 40ms --> 30 ms

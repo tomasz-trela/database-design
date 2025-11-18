@@ -1,0 +1,3 @@
+Index for order.placed_at sped up the query signficantly
+    (if filtering with other order attributes, they should be added as well)
+Ultimate optmization would be to store the combined order price inside order table 

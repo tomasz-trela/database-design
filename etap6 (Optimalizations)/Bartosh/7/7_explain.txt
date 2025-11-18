@@ -1,0 +1,4 @@
+Do not use address table (unnecessary)
+Changing structure a bit helped
+
+Big changes

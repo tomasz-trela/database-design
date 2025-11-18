@@ -1,4 +1,4 @@
-WITH order_prices AS (
+EXPLAIN ANALYZE WITH order_prices AS (
 	SELECT o.order_id, SUM(c.price) AS order_price
 	FROM "order" AS o
 	JOIN order_item AS oi ON o.order_id = oi.order_id

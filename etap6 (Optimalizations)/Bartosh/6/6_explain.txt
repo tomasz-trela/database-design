@@ -1,0 +1,2 @@
+Remove unnecessary JOIN
+27 ms --> 21 ms

@@ -7,7 +7,7 @@ Bartosz
         (UNION ALL, UPPER, unnest, enum_range)
 3) Liczba zamówień w każdym kwartale
         (to_char)
-4) Liczba zamówień na podstawie kategorii cenowych (duże, średnie, małe)
+4) Liczba zamówień złoonych od roku czerwca 2024 na podstawie kategorii cenowych (duże, średnie, małe)
         (double WITH, CASE - WHEN, array_position)
 5) Średni czas pomiędzy zamówieniami klientów, którzy mają przynajmniej 2 zamówienia
         (LEAD ... OVER, PARTITION BY, to_char)

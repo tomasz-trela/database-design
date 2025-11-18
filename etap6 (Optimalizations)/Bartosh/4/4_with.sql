@@ -1,4 +1,7 @@
-WITH order_prices AS (
+CREATE INDEX IF NOT EXISTS order_placed_at_idx ON "order" (placed_at);
+
+
+EXPLAIN ANALYZE WITH order_prices AS (
 	SELECT o.order_id, SUM(c.price) AS order_price
 	FROM "order" AS o
 	JOIN order_item AS oi ON o.order_id = oi.order_id
@@ -13,10 +16,11 @@ order_sizes AS (
 			WHEN order_price > 3000 THEN 'large'
 			WHEN order_price > 1800 THEN 'medium'
 			ELSE 'small'
-		END AS order_size
+		END AS order_size,
+		COUNT(*) AS "count"
 	FROM order_prices
+	GROUP BY order_size
 )
-SELECT order_size, COUNT(*)
+SELECT order_size, "count"
 FROM order_sizes
-GROUP BY order_size
 ORDER BY array_position(ARRAY['small','medium','large'], order_size);
