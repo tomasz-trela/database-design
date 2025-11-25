@@ -20,8 +20,8 @@ Ola
 
 8) Statystyki dotyczące reklamacji z podziałem na poszczególne dania (liczba skarg, ilość rozpatrzonych/nierozpatrzonych reklamacji, średni zwrot)
 9) Podsumowanie czasu, który minął od ostatniego zamówienia dla wszystkich klientów (uwzględnia też tych, którzy nigdy nie złożyli zamówienia).
-10) Podsumowanie tego w jaki dzień tygodnia i o jakiej porze jest najwięcej zamówień.
-11) Liczba zrealizowanych dostaw w danych przedziałach czasowych dla kurierów.
+10) Statystyki zamówień z podziałem na dni oraz pory dnia (minimalna cena, maksymalna, średnia, najpopularniejsze danie).
+11) Efektywnośc dostaw w wybranym zakresie dat, tj. średni czas dostarczenia oraz procentowy udział dostaw mieszczących się w trzech zadanych przedziałach czasowych.
 
 Tomek
 
