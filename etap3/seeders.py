@@ -1274,7 +1274,7 @@ def main():
 
     try:
         # Tomek
-        course_ids = seeder.seed_courses(150)
+        course_ids = seeder.seed_courses(60000)
         ingredient_ids = seeder.seed_ingredients(1000)
 
         seeder.seed_course_ingredient_relations(course_ids, ingredient_ids)

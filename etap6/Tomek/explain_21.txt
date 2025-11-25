@@ -1,0 +1,21 @@
+"Seq Scan on course  (cost=0.00..2821.00 rows=1304 width=25) (actual time=0.029..13.277 rows=1235.00 loops=1)"
+"  Filter: ((calories_100g >= 330) AND (calories_100g <= 350))"
+"  Rows Removed by Filter: 58765"
+"  Buffers: shared hit=1921"
+"Planning Time: 0.114 ms"
+"Execution Time: 13.362 ms"
+
+EXPLAIN ANALYZE SELECT name, calories_100g 
+FROM course 
+WHERE calories_100g BETWEEN 330 AND 350;
+
+"Bitmap Heap Scan on course  (cost=21.66..1856.58 rows=1304 width=25) (actual time=0.423..1.569 rows=1235.00 loops=1)"
+"  Recheck Cond: ((calories_100g >= 330) AND (calories_100g <= 350))"
+"  Heap Blocks: exact=930"
+"  Buffers: shared hit=933"
+"  ->  Bitmap Index Scan on idx_course_calories  (cost=0.00..21.33 rows=1304 width=0) (actual time=0.239..0.240 rows=1235.00 loops=1)"
+"        Index Cond: ((calories_100g >= 330) AND (calories_100g <= 350))"
+"        Index Searches: 1"
+"        Buffers: shared hit=3"
+"Planning Time: 0.133 ms"
+"Execution Time: 1.659 ms"
