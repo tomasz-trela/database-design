@@ -38,7 +38,7 @@ Każdy z tych etapów był uzależniony od wcześniejszych ustaleń i wymagał p
 
 **Szanse (Opportunities):**
 
-- Moliwość rozszerzenia projektu w kierunku hurtowni danych (np. prognoza przychodów, statystyki reklamacji czy zamówień).
+- Możliwość rozszerzenia projektu w kierunku hurtowni danych (np. prognoza przychodów, statystyki reklamacji czy zamówień).
 - Możliwość rozbudowy systemu o moduły magazynowe i logistyczne tj. zapasy składników, terminy przydatności, rejestracja zakupów produktów czy planowanie tras dostaw.
 - Automatyzacja planowania pracy kuchni i dostaw.
 - Wprowadzenie automatycznych sugestii menu i planów żywieniowych na podstawie historii zamówień i preferencji klientów.
