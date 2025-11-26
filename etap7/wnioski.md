@@ -26,6 +26,7 @@ Każdy z tych etapów był uzależniony od wcześniejszych ustaleń i wymagał p
 - Rozbudowane więzy intergralności, gwarantujące spójność i poprawność danych poprzez walidację
 - Jasny podział użytkowników systemu (ról)
 - Łatwość dalszego skalowania systemu, tj. dodawanie nowych funkcjonalności
+- Tabela order przechowuje dokładne wartości vat_rate, net_total, gross_total w momencie złożenia zamówienia. Gwarantuje to, że zmiana cen dań w przyszłości nie wpłynie na historyczne dane finansowe.
 
 **Słabe strony (Weaknesses):**
 
@@ -41,6 +42,8 @@ Każdy z tych etapów był uzależniony od wcześniejszych ustaleń i wymagał p
 - Możliwość rozbudowy systemu o moduły magazynowe i logistyczne tj. zapasy składników, terminy przydatności, rejestracja zakupów produktów czy planowanie tras dostaw.
 - Automatyzacja planowania pracy kuchni i dostaw.
 - Wprowadzenie automatycznych sugestii menu i planów żywieniowych na podstawie historii zamówień i preferencji klientów.
+- Rozszerzenie o subskrypcje posiłków
+- Wykorzystanie danych z tabel daily_menu i course do zasilania szybkiej pamięci podręcznej z wyprzedzeniem.
 
 **Zagrożenia (Threats):**
 
