@@ -4,8 +4,8 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS "vat_rate" (
     "vat_rate_id" SERIAL PRIMARY KEY,
     "rate" NUMERIC(6,4) NOT NULL,
-    "start_date" DATE NOT NULL,  
-    "end_date" DATE   
+    "start_date" DATE NOT NULL,
+    "end_date" DATE
 );
 
 INSERT INTO "vat_rate" ("rate", "start_date") VALUES (0.23, CURRENT_DATE);
@@ -27,12 +27,12 @@ ADD CONSTRAINT "chk_gross_total_non_negative"
 ADD CONSTRAINT "chk_gross_total_consistency"
     CHECK ("gross_total" = "net_total" + "vat_total");
 
--- assuming the price has not changed while the system works 
+-- assuming the price has not changed while the system works
 UPDATE "course_in_order_item"
-SET 
-    "price_at_order" = c."price", 
+SET
+    "price_at_order" = c."price",
     "vat_rate" = 0.23,
-    "net_total" = c."price", 
+    "net_total" = c."price",
     "vat_total" = c."price" * 0.23,
     "gross_total" = c."price" * 1.23
 FROM "course" c
@@ -45,8 +45,8 @@ CREATE TABLE "invoice_order_item" (
     "course_in_order_item_id" INTEGER NOT NULL,
     "vat_rate" NUMERIC(6,4) NOT NULL,
     "net_total"  NUMERIC(18,2)  NOT NULL,
-    "vat_total" NUMERIC(18,2) NOT NULL, 
-    "gross_total" NUMERIC(18,2) NOT NULL, 
+    "vat_total" NUMERIC(18,2) NOT NULL,
+    "gross_total" NUMERIC(18,2) NOT NULL,
     PRIMARY KEY("invoice_order_item_id"),
 
     CONSTRAINT "fk_invoice_order_item_invoice"
