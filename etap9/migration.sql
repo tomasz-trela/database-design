@@ -1,13 +1,6 @@
 -- ROLLBACK;
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS "vat_rate" (
-    "vat_rate_id" SERIAL PRIMARY KEY,
-    "rate" NUMERIC(6,4) NOT NULL,
-    "start_date" DATE NOT NULL,
-    "end_date" DATE
-);
-
 INSERT INTO "vat_rate" ("rate", "start_date") VALUES (0.23, CURRENT_DATE);
 
 ALTER TABLE "course_in_order_item"
