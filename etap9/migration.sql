@@ -1,8 +1,6 @@
 -- ROLLBACK;
 BEGIN;
 
-INSERT INTO "vat_rate" ("rate", "start_date") VALUES (0.23, CURRENT_DATE);
-
 ALTER TABLE "course_in_order_item"
 ADD COLUMN "price_at_order" DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
 ADD COLUMN "vat_rate" NUMERIC(6,4) NOT NULL DEFAULT 0.00,
