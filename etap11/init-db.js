@@ -228,6 +228,7 @@ dbRef.createCollection("orders", {
                   bsonType: "object",
                   additionalProperties: false,
                   required: [
+                    "_id",
                     "course_id",
                     "name",
                     "description",
@@ -238,6 +239,8 @@ dbRef.createCollection("orders", {
                     "fat_100g",
                   ],
                   properties: {
+                    _id: { bsonType: "objectId" },
+
                     course_id: { bsonType: "objectId" },
 
                     name: { bsonType: "string", minLength: 1 },
