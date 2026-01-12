@@ -2,11 +2,11 @@
 
 const dbRef = db.getSiblingDB("catering_company");
 
-const USERS_COUNT = 10;
-const CUSTOMERS_COUNT = 7;
-const COURSES_COUNT = 50;
-const ORDERS_COUNT = 40;
-const INVOICES_COUNT = 21;
+const USERS_COUNT = 15000;
+const CUSTOMERS_COUNT = 14800;
+const COURSES_COUNT = 500;
+const ORDERS_COUNT = 50000;
+const INVOICES_COUNT = 21000;
 
 /// ===== Helper unctions =====
 

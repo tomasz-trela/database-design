@@ -30,3 +30,9 @@ mongosh "mongodb://localhost:27017" --file init-db.js
 ```
 mongosh "mongodb://localhost:27017/catering_company" --eval "db.getCollectionNames()"
 ```
+
+# Queries
+
+```
+mongosh "mongodb://localhost:27017/catering_company" query6.js
+```
