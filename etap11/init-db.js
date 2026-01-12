@@ -126,10 +126,10 @@ dbRef.createCollection("courses", {
 
         price: { bsonType: "decimal" },
 
-        protein_100g: { bsonType: "double" },
+        protein_100g: { bsonType: ["double", "int"] },
         calories_100g: { bsonType: "int" },
-        carbohydrates_100g: { bsonType: "double" },
-        fat_100g: { bsonType: "double" },
+        carbohydrates_100g: { bsonType: ["double", "int"] },
+        fat_100g: { bsonType: ["double", "int"] },
 
         created_at: { bsonType: "date" },
         updated_at: { bsonType: "date" },
