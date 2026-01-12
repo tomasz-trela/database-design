@@ -1,6 +1,7 @@
 const dbRef = db.getSiblingDB("catering_company");
 
 dbRef.dropDatabase();
+print("Old database dropped.");
 
 dbRef.createCollection("users", {
   validator: {
