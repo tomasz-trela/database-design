@@ -102,6 +102,44 @@ dbRef.createCollection("customers", {
 
 print("Init OK: customers (embedded addresses)");
 
+dbRef.createCollection("dietitians", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      additionalProperties: false,
+      required: ["user_id"],
+      properties: {
+        _id: { bsonType: "objectId" },
+        user_id: { bsonType: "objectId" },
+        certification: { bsonType: ["string", "null"], maxLength: 100 }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error",
+});
+
+print("Init OK: dietitians");
+
+dbRef.createCollection("meal_categories", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      additionalProperties: false,
+      required: ["name"],
+      properties: {
+        _id: { bsonType: "objectId" },
+        name: { bsonType: "string", minLength:1, maxLength: 50 },
+        description: { bsonType: ["string", "null"] }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error",
+});
+
+print("Init OK: meal_categories");
+
 dbRef.createCollection("courses", {
   validator: {
     $jsonSchema: {
@@ -133,6 +171,19 @@ dbRef.createCollection("courses", {
 
         created_at: { bsonType: "date" },
         updated_at: { bsonType: "date" },
+
+        categories: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            additionalProperties: false,
+            required: ["category_id", "name"],
+            properties: {
+              category_id: { bsonType: "objectId" },
+              name: { bsonType: "string" },
+            }
+          }
+        },
       },
     },
   },
@@ -360,3 +411,158 @@ dbRef.createCollection("invoices", {
 });
 
 print("Init OK: invoices (embedded invoice_order_items)");
+
+dbRef.createCollection("daily_menus", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      additionalProperties: false,
+      required: ["dietician_id", "menu_date", "courses_snapshot"],
+      properties: {
+        _id: { bsonType: "objectId" },
+        menu_date: { bsonType: "date" },
+        dietician_id: { bsonType: "objectId" },
+
+        courses_snapshot: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            additionalProperties: false,
+            required: ["course_id", "name", "price_at_time", "sequence"],
+            properties: {
+              course_id: { bsonType: "objectId" },
+              name: { bsonType: "string", minLength: 1 },
+              price_at_time: { bsonType: "decimal", minimum: NumberDecimal("0.0") },
+              calories: { bsonType: "int" },
+              protein: { bsonType: "double" },
+              carbohydrates: { bsonType: "double" },
+              fat: { bsonType: "double" },
+              sequence: { bsonType: "int", minimum: 1 }
+            },
+          }
+        }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error",
+});
+
+print("Init OK: daily_menu");
+
+
+dbRef.createCollection("meal_plans", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      additionalProperties: false,
+      required: ["name", "days"],
+      properties: {
+        _id: { bsonType: "objectId" },
+        name: { bsonType: "string", maxLength: 100 },
+        description: { bsonType: ["string", "null"] },
+
+        dietician_id: { bsonType: "objectId" },
+
+        start_date: { bsonType: ["date", "null"] },
+        end_date: { bsonType: ["date", "null"] },
+
+        days: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            additionalProperties: false,
+            required: ["day_number", "courses_snapshot"],
+            properties: {
+              day_number: { bsonType: "int", minimum: 1 },
+              courses_snapshot: {
+                bsonType: "array",
+                items: {
+                  bsonType: "object",
+                  additionalProperties: false,
+                  required: ["course_id", "name", "price_at_time", "sequence"],
+                  properties: {
+                    course_id: { bsonType: "objectId" },
+                    name: { bsonType: "string", minLength: 1 },
+                    price_at_time: { bsonType: "decimal", minimum: NumberDecimal("0.0") },
+                    calories: { bsonType: "int" },
+                    protein: { bsonType: "double" },
+                    carbohydrates: { bsonType: "double" },
+                    fat: { bsonType: "double" },
+                    sequence: { bsonType: "int", minimum: 1 }
+                  },
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error",
+});
+
+print("Init OK: meal_plans");
+
+
+dbRef.createCollection("complaints", {
+  validator : {
+    $jsonSchema: {
+      bsonType: "object",
+      additionalProperties: false,
+      required: [
+        "customer_id",
+        "order_id",
+        "order_item_id",
+        "course_in_order_item_id",
+        "course_snapshot",
+        "status",
+        "description",
+        "created_at"
+      ],
+      properties: {
+        _id: { bsonType: "objectId" },
+        customer_id: { bsonType: "objectId" },
+        order_id: { bsonType: "objectId" },
+        orde_item_id: { bsonType: "objectId" },
+        course_in_order_item_id: { bsonType: "objectId" },
+
+        course_snapshot: { 
+          bsonType: "object",
+          additionalProperties: false,
+          required: [
+            "course_id",
+            "name",
+            "price"
+          ],
+          properties: {
+            course_id: { bsonType: "objectId" },
+            name: { bsonType: "string" },
+            price: { bsonType: "decimal" }
+          },
+        },
+
+        status:  {
+          bsonType: "string",
+          enum: [
+            "submitted",
+            "under_review",
+            "resolved_positive",
+            "resolved_negative"
+          ]
+        },
+
+        description: { bsonType: "string" },
+        refund_amount: { bsonType: ["decimal", "null"], minimum: NumberDecimal("0.0") },
+
+        created_at: { bsonType: "date" },
+        resolved_at: { bsonType: ["date", "null"] }
+      }
+    },
+    validationLevel: "strict",
+    validationAction: "error",
+  }
+});
+
+print("Init OK: complaints");
