@@ -529,9 +529,9 @@ dbRef.createCollection("meal_plans", {
                     name: { bsonType: "string", minLength: 1 },
                     price_at_time: { bsonType: "decimal", minimum: NumberDecimal("0.0") },
                     calories: { bsonType: "int" },
-                    protein: { bsonType: "double" },
-                    carbohydrates: { bsonType: "double" },
-                    fat: { bsonType: "double" },
+                    protein: { bsonType: ["double", "int"] },
+                    carbohydrates: { bsonType: ["double", "int"] },
+                    fat: { bsonType: ["double", "int"] },
                     sequence: { bsonType: "int", minimum: 1 }
                   },
                 }
