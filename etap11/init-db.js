@@ -7,143 +7,110 @@ dbRef.createCollection("users", {
   validator: {
     $jsonSchema: {
       bsonType: "object",
-      additionalProperties: false,
-      required: [
-        "login",
-        "email",
-        "password_hash",
-        "name",
-        "surname",
-        "date_created",
-      ],
+      required: ["login", "email", "password_hash", "roles", "name", "surname", "date_created"],
       properties: {
         _id: { bsonType: "objectId" },
-
-        login: { bsonType: "string", minLength: 1, maxLength: 50 },
-        email: { bsonType: "string", minLength: 1, maxLength: 255 },
-        password_hash: { bsonType: "string", minLength: 1, maxLength: 255 },
-
-        name: { bsonType: "string", minLength: 1, maxLength: 50 },
-        surname: { bsonType: "string", minLength: 1, maxLength: 50 },
-
-        phone_number: {
-          bsonType: ["string", "null"],
-          minLength: 1,
-          maxLength: 16,
+        login: { bsonType: "string" },
+        email: {
+          bsonType: "string",
+          pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
         },
-
+        roles: {
+          bsonType: "array",
+          minItems: 1,
+          items: { enum: ["customer", "cook", "courier", "dietician", "admin"] }
+        },
+        password_hash: { bsonType: "string" },
+        name: { bsonType: "string", minLength: 1 },
+        surname: { bsonType: "string", minLength: 1 },
+        phone_number: { bsonType: ["string", "null"] },
         date_created: { bsonType: "date" },
         date_removed: { bsonType: ["date", "null"] },
         last_login: { bsonType: ["date", "null"] },
-      },
-    },
-  },
-  validationLevel: "strict",
-  validationAction: "error",
-});
 
-print("Init OK: users");
-
-dbRef.createCollection("customers", {
-  validator: {
-    $jsonSchema: {
-      bsonType: "object",
-      additionalProperties: false,
-      required: ["user_id", "addresses"],
-      properties: {
-        _id: { bsonType: "objectId" },
-
-        user_id: { bsonType: "objectId" },
-
-        default_address_id: { bsonType: ["objectId", "null"] },
-        allergens: {
-          bsonType: "array",
-          items: {
-            bsonType: "object",
-            required: ["allergen_id", "name"],
-            properties: {
-              allergen_id: { bsonType: "objectId" },
-              name: { bsonType: "string", minLength: 1 }
-            }
-          }
-        },
-
-        preferences: {
-          bsonType: "array",
-          items: {
-            bsonType: "object",
-            required: ["ingredient_id", "name", "rating"],
-            properties: {
-              ingredient_id: { bsonType: "objectId" }, 
-              name: { bsonType: "string", minLength: 1 },
-              rating: { bsonType: "int", minimum: 1, maximum: 5 }
-            }
-          }
-        },
-
-        addresses: {
-          bsonType: "array",
-          minItems: 0,
-          items: {
-            bsonType: "object",
-            additionalProperties: false,
-            required: [
-              "country",
-              "postal_code",
-              "city",
-              "street_name",
-              "street_number",
-              "created_at",
-            ],
-            properties: {
-              _id: { bsonType: "objectId" },
-
-              country: { bsonType: "string", minLength: 1 },
-              region: { bsonType: ["string", "null"] },
-
-              postal_code: { bsonType: "string", minLength: 1, maxLength: 16 },
-              city: { bsonType: "string", minLength: 1 },
-
-              street_name: { bsonType: "string", minLength: 1 },
-              street_number: { bsonType: "string", minLength: 1, maxLength: 8 },
-              apartment: {
-                bsonType: ["string", "null"],
-                minLength: 1,
-                maxLength: 8,
-              },
-
-              created_at: { bsonType: "date" },
-              deleted_at: { bsonType: ["date", "null"] },
+        customer_data: {
+          bsonType: "object",
+          properties: {
+            preferences: {
+              bsonType: "array",
+              items: {
+                bsonType: "object",
+                required: ["ingredient_id", "name", "rating"],
+                properties: {
+                  ingredient_id: { bsonType: "objectId" },
+                  name: { bsonType: "string", minLength: 1 },
+                  rating: { bsonType: "int", minimum: 1, maximum: 5 }
+                }
+              }
             },
-          },
+            addresses: {
+              bsonType: "array",
+              minItems: 0,
+              items: {
+                bsonType: "object",
+                additionalProperties: true,
+                required: [
+                  "country",
+                  "postal_code",
+                  "city",
+                  "street_name",
+                  "street_number",
+                  "created_at",
+                ],
+                properties: {
+                  _id: { bsonType: "objectId" },
+
+                  country: { bsonType: "string", minLength: 1 },
+                  region: { bsonType: ["string", "null"] },
+
+                  postal_code: { bsonType: "string", minLength: 1, maxLength: 16 },
+                  city: { bsonType: "string", minLength: 1 },
+
+                  street_name: { bsonType: "string", minLength: 1 },
+                  street_number: { bsonType: "string", minLength: 1, maxLength: 8 },
+                  apartment: {
+                    bsonType: ["string", "null"],
+                    minLength: 1,
+                    maxLength: 8,
+                  },
+
+                  created_at: { bsonType: "date" },
+                  deleted_at: { bsonType: ["date", "null"] },
+                },
+              },
+            },
+            default_address_id: { bsonType: ["objectId", "null"] },
+            allergens: {
+              bsonType: "array",
+              items: {
+                bsonType: "object",
+                required: ["allergen_id", "name"],
+                properties: {
+                  allergen_id: { bsonType: "objectId" },
+                  name: { bsonType: "string", minLength: 1 }
+                }
+              }
+            },
+          }
         },
-      },
-    },
-  },
-  validationLevel: "strict",
-  validationAction: "error",
-});
 
-print("Init OK: customers (embedded addresses)");
-
-dbRef.createCollection("dietitians", {
-  validator: {
-    $jsonSchema: {
-      bsonType: "object",
-      additionalProperties: false,
-      required: ["user_id"],
-      properties: {
-        _id: { bsonType: "objectId" },
-        user_id: { bsonType: "objectId" },
-        certification: { bsonType: ["string", "null"], maxLength: 100 }
+        staff_data: {
+          bsonType: "object",
+          properties: {
+            certification: { bsonType: "string" },  // For Dieticians
+            specialties: { bsonType: "array", items: { bsonType: "string" } }, // For Cooks
+            courier_type: { enum: ["PysznePL", "Glovo", "Internal"] }  // For Couriers
+          }
+        }
       }
     }
-  },
-  validationLevel: "strict",
-  validationAction: "error",
+  }
 });
 
-print("Init OK: dietitians");
+dbRef.users.createIndex({ "login": 1 }, { unique: true });
+dbRef.users.createIndex({ "email": 1 }, { unique: true });
+
+print("Init OK: users (embedded all user types)");
 
 dbRef.createCollection("ingredients", {
   validator: {
@@ -186,25 +153,6 @@ dbRef.createCollection("ingredients", {
 
 print("Init OK: ingredients");
 
-dbRef.createCollection("meal_categories", {
-  validator: {
-    $jsonSchema: {
-      bsonType: "object",
-      additionalProperties: false,
-      required: ["name"],
-      properties: {
-        _id: { bsonType: "objectId" },
-        name: { bsonType: "string", minLength:1, maxLength: 50 },
-        description: { bsonType: ["string", "null"] }
-      }
-    }
-  },
-  validationLevel: "strict",
-  validationAction: "error",
-});
-
-print("Init OK: meal_categories");
-
 dbRef.createCollection("courses", {
   validator: {
     $jsonSchema: {
@@ -227,7 +175,7 @@ dbRef.createCollection("courses", {
         name: { bsonType: "string", minLength: 1 },
         description: { bsonType: "string", minLength: 1 },
 
-        price: { bsonType: "decimal" },
+        price: { bsonType: "decimal", minimum: NumberDecimal("0.0") },
 
         protein_100g: { bsonType: ["double", "int"] },
         calories_100g: { bsonType: "int" },
@@ -243,7 +191,7 @@ dbRef.createCollection("courses", {
             bsonType: "object",
             required: ["ingredient_id", "name", "quantity"],
             properties: {
-              ingredient_id: { bsonType: "objectId" },
+              _id: { bsonType: "objectId" },
               name: { bsonType: "string", minLength: 1 },
               quantity: { bsonType: ["double", "int"], minimum: 0 },
               unit_of_measure: { enum: ["g", "ml", "kg", "l", "piece"] },
@@ -265,13 +213,14 @@ dbRef.createCollection("courses", {
         categories: {
           bsonType: "array",
           items: {
-            bsonType: "object",
-            additionalProperties: false,
-            required: ["category_id", "name"],
-            properties: {
-              category_id: { bsonType: "objectId" },
-              name: { bsonType: "string" },
-            }
+            enum: [
+              "Vegan",
+              "Pescatarian",
+              "Vegetarian",
+              "Breakfast",
+              "Lunch",
+              "Dinner"
+            ],
           }
         },
       },
@@ -500,6 +449,8 @@ dbRef.createCollection("invoices", {
   validationAction: "error",
 });
 
+dbRef.invoices.createIndex({ "invoice_number": 1 }, { unique: true });
+
 print("Init OK: invoices (embedded invoice_order_items)");
 
 dbRef.createCollection("daily_menus", {
@@ -537,6 +488,8 @@ dbRef.createCollection("daily_menus", {
   validationLevel: "strict",
   validationAction: "error",
 });
+
+dbRef.daily_menus.createIndex({ "menu_date": 1 }, { unique: true });
 
 print("Init OK: daily_menu");
 
@@ -615,10 +568,13 @@ dbRef.createCollection("complaints", {
         _id: { bsonType: "objectId" },
         customer_id: { bsonType: "objectId" },
         order_id: { bsonType: "objectId" },
-        orde_item_id: { bsonType: "objectId" },
+        order_item_id: { bsonType: "objectId" },
         course_in_order_item_id: { bsonType: "objectId" },
 
-        course_snapshot: { 
+        course_snapshot: {
+          // Note: we expect this to be mirrored from orders not courses
+          // in order to reflect exactly what the customer ordered and is
+          // filing a complaint about.
           bsonType: "object",
           additionalProperties: false,
           required: [
@@ -690,8 +646,92 @@ dbRef.createCollection("opinions", {
 });
 
 dbRef.opinions.createIndex(
-  { course_id: 1, customer_id: 1 }, 
+  { course_id: 1, customer_id: 1 },
   { unique: true }
 )
 
 print("Init OK: opinions");
+
+
+dbRef.createCollection("fulfillments", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["order_id", "order_item_id", "cook_id", "status", "last_updated_at"],
+      properties: {
+        _id: { bsonType: "objectId" },
+        order_id: { bsonType: "objectId" },
+        order_item_id: { bsonType: "objectId" },
+        cook_id: { bsonType: ["objectId", "null"] },
+
+        status: { enum: ["pending", "in_preparation", "completed", "cancelled"] },
+        began_at: { bsonType: ["date", "null"] },
+        completed_at: { bsonType: ["date", "null"] },
+        last_updated_at: { bsonType: "date" },
+        notes: { bsonType: ["string", "null"] }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error",
+});
+
+dbRef.fulfillments.createIndex({ "order_item_id": 1 }, { unique: true });
+dbRef.fulfillments.createIndex({ "status": 1, "cook_id": 1 });
+print("Init OK: fulfillments");
+
+
+dbRef.createCollection("deliveries", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["order_id", "order_item_id", "courier_id", "status", "address", "last_updated_at"],
+      properties: {
+        _id: { bsonType: "objectId" },
+        order_id: { bsonType: "objectId" },
+        order_item_id: { bsonType: "objectId" },
+        courier_id: { bsonType: ["objectId", "null"] },
+
+        address: {
+          bsonType: "object",
+          additionalProperties: true,
+          required: [
+            "country",
+            "postal_code",
+            "city",
+            "street_name",
+            "street_number",
+          ],
+          properties: {
+            country: { bsonType: "string", minLength: 1 },
+            region: { bsonType: ["string", "null"] },
+
+            postal_code: { bsonType: "string", minLength: 1, maxLength: 16 },
+            city: { bsonType: "string", minLength: 1 },
+
+            street_name: { bsonType: "string", minLength: 1 },
+            street_number: { bsonType: "string", minLength: 1, maxLength: 8 },
+            apartment: {
+              bsonType: ["string", "null"],
+              minLength: 1,
+              maxLength: 8,
+            },
+          },
+        },
+
+        status: { enum: ["awaiting_pickup", "in_transit", "delivered", "failed"] },
+        began_at: { bsonType: ["date", "null"] },
+        delivered_at: { bsonType: ["date", "null"] },
+        last_updated_at: { bsonType: "date" },
+        notes: { bsonType: ["string", "null"] }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error",
+});
+
+dbRef.deliveries.createIndex({ "order_item_id": 1 }, { unique: true });
+dbRef.deliveries.createIndex({ "status": 1, "courier_id": 1 });
+
+print("Init OK: deliveries");
