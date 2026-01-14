@@ -712,6 +712,26 @@ print(`Invoices inserted: ${dbRef.invoices.countDocuments()}`);
 
 // ===== Daily Menus seeding =====
 
+function createMenuCoursesSnapshots(courseCount, courseDocs) {
+  const coursesSnapshot = [];
+  const selectedCourses = pickN(courseDocs, courseCount);
+  
+  for (let seq = 0; seq < selectedCourses.length; seq++) {
+    const course = selectedCourses[seq];
+    coursesSnapshot.push({
+      course_id: course._id,
+      name: course.name,
+      price_at_time: course.price,
+      calories: course.calories_100g,
+      protein: course.protein_100g,
+      carbohydrates: course.carbohydrates_100g,
+      fat: course.fat_100g,
+      sequence: seq + 1
+    });
+  }
+  return coursesSnapshot;
+}
+
 if (dieticianUserDocs.length === 0) {
   print("Warning: No dieticians found. Skipping daily menus seeding.");
 } else {
@@ -719,24 +739,9 @@ if (dieticianUserDocs.length === 0) {
     const menuDate = nowMinusDays(i);
     const dietician = pickOne(dieticianUserDocs);
     
-    const coursesSnapshot = [];
     const courseCount = randInt(3, 8);
-    const selectedCourses = pickN(courseDocs, courseCount);
-    
-    for (let seq = 0; seq < selectedCourses.length; seq++) {
-      const course = selectedCourses[seq];
-      coursesSnapshot.push({
-        course_id: course._id,
-        name: course.name,
-        price_at_time: course.price,
-        calories: course.calories_100g,
-        protein: course.protein_100g,
-        carbohydrates: course.carbohydrates_100g,
-        fat: course.fat_100g,
-        sequence: seq + 1
-      });
-    }
-    
+    const coursesSnapshot = createMenuCoursesSnapshots(courseCount, courseDocs);
+     
     const dailyMenu = {
       _id: new ObjectId(),
       menu_date: menuDate,
@@ -767,24 +772,9 @@ if (dieticianUserDocs.length === 0) {
     
     const days = [];
     for (let d = 1; d <= daysCount; d++) {
-      const coursesSnapshot = [];
       const courseCount = randInt(3, 6);
-      const selectedCourses = pickN(courseDocs, courseCount);
-      
-      for (let seq = 0; seq < selectedCourses.length; seq++) {
-        const course = selectedCourses[seq];
-        coursesSnapshot.push({
-          course_id: course._id,
-          name: course.name,
-          price_at_time: course.price,
-          calories: course.calories_100g,
-          protein: course.protein_100g,
-          carbohydrates: course.carbohydrates_100g,
-          fat: course.fat_100g,
-          sequence: seq + 1
-        });
-      }
-      
+      const coursesSnapshot = createMenuCoursesSnapshots(courseCount, courseDocs);
+          
       days.push({
         day_number: d,
         courses_snapshot: coursesSnapshot
