@@ -213,14 +213,12 @@ dbRef.createCollection("courses", {
         categories: {
           bsonType: "array",
           items: {
-            enum: [
-              "Vegan",
-              "Pescatarian",
-              "Vegetarian",
-              "Breakfast",
-              "Lunch",
-              "Dinner"
-            ],
+            bsonType: "object",
+            required: ["category_id", "name"],
+            properties: {
+              category_id: { bsonType: "objectId" },
+              name: { bsonType: "string", minLength: 1 }
+            }
           }
         },
       },
@@ -322,27 +320,14 @@ dbRef.createCollection("orders", {
                     "_id",
                     "course_id",
                     "name",
-                    "description",
                     "price",
-                    "protein_100g",
-                    "calories_100g",
-                    "carbohydrates_100g",
-                    "fat_100g",
                   ],
                   properties: {
                     _id: { bsonType: "objectId" },
 
                     course_id: { bsonType: "objectId" },
-
                     name: { bsonType: "string", minLength: 1 },
-                    description: { bsonType: "string", minLength: 1 },
-
                     price: { bsonType: "decimal" },
-
-                    protein_100g: { bsonType: "double" },
-                    calories_100g: { bsonType: "int" },
-                    carbohydrates_100g: { bsonType: ["double", "int"] },
-                    fat_100g: { bsonType: ["double", "int"] },
                   },
                 },
               },
@@ -612,6 +597,24 @@ dbRef.createCollection("complaints", {
 });
 
 print("Init OK: complaints");
+
+dbRef.createCollection("course_categories", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name"],
+      properties: {
+        _id: { bsonType: "objectId" },
+        name: { bsonType: "string", minLength: 1 },
+        description: { bsonType: ["string", "null"] }
+      }
+    }
+  }
+});
+
+dbRef.course_categories.createIndex({ "name": 1 }, { unique: true });
+
+print("Init OK: course_categories");
 
 dbRef.createCollection("allergens", {
   validator: {

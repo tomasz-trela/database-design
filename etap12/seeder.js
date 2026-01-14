@@ -81,6 +81,9 @@ print("Users collection cleared.");
 dbRef.allergens.deleteMany({});
 print("Allergens collection cleared.");
 
+dbRef.course_categories.deleteMany({});
+print("Course categories collection cleared.");
+
 dbRef.ingredients.deleteMany({});
 print("Ingredients collection cleared.");
 
@@ -199,10 +202,30 @@ for (let i = 0; i < INGREDIENTS_COUNT && i < ingredientNames.length; i++) {
 
 print(`Ingredients inserted: ${dbRef.ingredients.countDocuments()}`);
 
-// ===== Courses seeding =====
+// ===== Course Categories seeding =====
 
-// Categories as defined in schema (simple enum strings)
-const COURSE_CATEGORIES = ["Vegan", "Pescatarian", "Vegetarian", "Breakfast", "Lunch", "Dinner"];
+const categoryNames = ["Vegan", "Pescatarian", "Vegetarian", "Breakfast", "Lunch", "Dinner"];
+const categoryDocs = [];
+
+for (let i = 0; i < categoryNames.length; i++) {
+  const category = {
+    _id: new ObjectId(),
+    name: categoryNames[i],
+    description: `Category: ${categoryNames[i]}`
+  };
+  
+  dbRef.course_categories.updateOne(
+    { name: category.name },
+    { $setOnInsert: category },
+    { upsert: true }
+  );
+  
+  categoryDocs.push(category);
+}
+
+print(`Course categories inserted: ${dbRef.course_categories.countDocuments()}`);
+
+// ===== Courses seeding =====
 
 function createCourseObject({ nameSeed, createdDaysAgo = 0 }) {
   const createdAt = nowMinusDays(createdDaysAgo);
@@ -225,13 +248,16 @@ function createCourseObject({ nameSeed, createdDaysAgo = 0 }) {
     }
   }
   
-  // Categories as simple strings (enum values)
+  // Categories referencing the course_categories collection
   const courseCategories = [];
   const catCount = randInt(1, 3);
   for (let c = 0; c < catCount; c++) {
-    const cat = pickOne(COURSE_CATEGORIES);
-    if (!courseCategories.includes(cat)) {
-      courseCategories.push(cat);
+    const cat = pickOne(categoryDocs);
+    if (!courseCategories.find(cc => cc.category_id.equals(cat._id))) {
+      courseCategories.push({
+        category_id: cat._id,
+        name: cat.name
+      });
     }
   }
   
@@ -487,12 +513,7 @@ function createCourseInOrderItemObject(course) {
     _id: new ObjectId(),
     course_id: course._id,
     name: course.name,
-    description: course.description,
     price: course.price,
-    protein_100g: course.protein_100g,
-    calories_100g: course.calories_100g,
-    carbohydrates_100g: course.carbohydrates_100g,
-    fat_100g: course.fat_100g,
   };
 }
 
