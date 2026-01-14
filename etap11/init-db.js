@@ -191,7 +191,7 @@ dbRef.createCollection("courses", {
             bsonType: "object",
             required: ["ingredient_id", "name", "quantity"],
             properties: {
-              _id: { bsonType: "objectId" },
+              ingredient_id: { bsonType: "objectId" },
               name: { bsonType: "string", minLength: 1 },
               quantity: { bsonType: ["double", "int"], minimum: 0 },
               unit_of_measure: { enum: ["g", "ml", "kg", "l", "piece"] },
@@ -341,8 +341,8 @@ dbRef.createCollection("orders", {
 
                     protein_100g: { bsonType: "double" },
                     calories_100g: { bsonType: "int" },
-                    carbohydrates_100g: { bsonType: "double" },
-                    fat_100g: { bsonType: "double" },
+                    carbohydrates_100g: { bsonType: ["double", "int"] },
+                    fat_100g: { bsonType: ["double", "int"] },
                   },
                 },
               },
@@ -475,9 +475,9 @@ dbRef.createCollection("daily_menus", {
               name: { bsonType: "string", minLength: 1 },
               price_at_time: { bsonType: "decimal", minimum: NumberDecimal("0.0") },
               calories: { bsonType: "int" },
-              protein: { bsonType: "double" },
-              carbohydrates: { bsonType: "double" },
-              fat: { bsonType: "double" },
+              protein: { bsonType: ["double", "int"] },
+              carbohydrates: { bsonType: ["double", "int"] },
+              fat: { bsonType: ["double", "int"] },
               sequence: { bsonType: "int", minimum: 1 }
             },
           }
@@ -606,9 +606,9 @@ dbRef.createCollection("complaints", {
         resolved_at: { bsonType: ["date", "null"] }
       }
     },
-    validationLevel: "strict",
-    validationAction: "error",
-  }
+  },
+  validationLevel: "strict",
+  validationAction: "error",
 });
 
 print("Init OK: complaints");
@@ -662,7 +662,7 @@ dbRef.createCollection("fulfillments", {
         _id: { bsonType: "objectId" },
         order_id: { bsonType: "objectId" },
         order_item_id: { bsonType: "objectId" },
-        cook_id: { bsonType: ["objectId", "null"] },
+        cook_id: { bsonType: "objectId" },
 
         status: { enum: ["pending", "in_preparation", "completed", "cancelled"] },
         began_at: { bsonType: ["date", "null"] },
@@ -678,6 +678,7 @@ dbRef.createCollection("fulfillments", {
 
 dbRef.fulfillments.createIndex({ "order_item_id": 1 }, { unique: true });
 dbRef.fulfillments.createIndex({ "status": 1, "cook_id": 1 });
+
 print("Init OK: fulfillments");
 
 
