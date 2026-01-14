@@ -27,7 +27,7 @@ printjson(
         },
       },
 
-      { $sort: { addresses_count: -1, surname: 1, name: 1 } },
+      //   { $sort: { addresses_count: -1, surname: 1, name: 1 } },
     ])
     .toArray()
 );
