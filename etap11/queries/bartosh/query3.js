@@ -1,25 +1,45 @@
 const dbRef = db.getSiblingDB("catering_company");
 
+// Distribution of address counts among customers
 printjson(
-  dbRef.customers
+  dbRef.users
     .aggregate([
-      { $project: { addresses_count: { $size: "$addresses" } } },
+      { $match: { roles: "customer" } },
+      {
+        $project: {
+          addresses_count: {
+            $size: { $ifNull: ["$customer_data.addresses", []] },
+          },
+        },
+      },
       { $group: { _id: "$addresses_count", n: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ])
     .toArray()
 );
 
+// Top 20 customers by address count
 printjson(
-  dbRef.customers
+  dbRef.users
     .aggregate([
-      { $project: { _id: 1, addresses_count: { $size: "$addresses" } } },
+      { $match: { roles: "customer" } },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          surname: 1,
+          addresses_count: {
+            $size: { $ifNull: ["$customer_data.addresses", []] },
+          },
+        },
+      },
       { $sort: { addresses_count: -1 } },
       { $limit: 20 },
     ])
     .toArray()
 );
 
+// Orders count by quarter
 const res = dbRef.orders
   .aggregate([
     {

@@ -39,17 +39,8 @@ printjson(
           perCustomer: [
             {
               $lookup: {
-                from: "customers",
-                localField: "_id",
-                foreignField: "_id",
-                as: "customer",
-              },
-            },
-            { $unwind: "$customer" },
-            {
-              $lookup: {
                 from: "users",
-                localField: "customer.user_id",
+                localField: "_id",
                 foreignField: "_id",
                 as: "user",
               },

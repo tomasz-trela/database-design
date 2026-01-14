@@ -1,11 +1,20 @@
 const dbRef = db.getSiblingDB("catering_company");
 
 printjson(
-  dbRef.customers
+  dbRef.users
     .aggregate([
       {
+        $match: {
+          roles: "customer",
+          "customer_data.addresses": { $exists: true },
+        },
+      },
+
+      {
         $addFields: {
-          addresses_count: { $size: { $ifNull: ["$addresses", []] } },
+          addresses_count: {
+            $size: { $ifNull: ["$customer_data.addresses", []] },
+          },
         },
       },
 

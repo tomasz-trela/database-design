@@ -1,35 +1,33 @@
 const dbRef = db.getSiblingDB("catering_company");
 
 printjson(
-  dbRef.customers
+  dbRef.users
     .aggregate([
       {
-        $addFields: {
-          addresses_count: { $size: { $ifNull: ["$addresses", []] } },
+        $match: {
+          roles: "customer",
         },
       },
 
       {
-        $lookup: {
-          from: "users",
-          localField: "user_id",
-          foreignField: "_id",
-          as: "user",
+        $addFields: {
+          addresses_count: {
+            $size: { $ifNull: ["$customer_data.addresses", []] },
+          },
         },
       },
-      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
 
       {
         $project: {
           _id: 0,
           id: "$_id",
-          name: "$user.name",
-          surname: "$user.surname",
+          name: 1,
+          surname: 1,
           addresses_count: 1,
         },
       },
 
-      //   { $sort: { addresses_count: -1, surname: 1, name: 1 } },
+      { $sort: { addresses_count: -1, surname: 1, name: 1 } },
     ])
     .toArray()
 );
