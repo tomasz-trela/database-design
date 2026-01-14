@@ -56,6 +56,30 @@ dbRef.createCollection("customers", {
         user_id: { bsonType: "objectId" },
 
         default_address_id: { bsonType: ["objectId", "null"] },
+        allergens: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            required: ["allergen_id", "name"],
+            properties: {
+              allergen_id: { bsonType: "objectId" },
+              name: { bsonType: "string", minLength: 1 }
+            }
+          }
+        },
+
+        preferences: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            required: ["ingredient_id", "name", "rating"],
+            properties: {
+              ingredient_id: { bsonType: "objectId" }, 
+              name: { bsonType: "string", minLength: 1 },
+              rating: { bsonType: "int", minimum: 1, maximum: 5 }
+            }
+          }
+        },
 
         addresses: {
           bsonType: "array",
@@ -121,6 +145,47 @@ dbRef.createCollection("dietitians", {
 
 print("Init OK: dietitians");
 
+dbRef.createCollection("ingredients", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      additionalProperties: false,
+      required: [
+        "name",
+        "unit_of_measure",
+        "protein_100g",
+        "fat_100g",
+        "carbohydrates_100g",
+        "calories_100g"
+      ],
+      properties: {
+        _id: { bsonType: "objectId" },
+        name: { bsonType: "string", minLength: 1, maxLength: 100 },
+        unit_of_measure: { enum: ["g", "ml", "kg", "l", "piece"] },
+        protein_100g: { bsonType: ["double", "int"] },
+        fat_100g: { bsonType: ["double", "int"] },
+        carbohydrates_100g: { bsonType: ["double", "int"] },
+        calories_100g: { bsonType: "int" },
+        allergens: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            required: ["allergen_id", "name"],
+            properties: {
+              allergen_id: { bsonType: "objectId" },
+              name: { bsonType: "string", minLength: 1 }
+            }
+          }
+        }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error",
+});
+
+print("Init OK: ingredients");
+
 dbRef.createCollection("meal_categories", {
   validator: {
     $jsonSchema: {
@@ -171,6 +236,31 @@ dbRef.createCollection("courses", {
 
         created_at: { bsonType: "date" },
         updated_at: { bsonType: "date" },
+
+        ingredients: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            required: ["ingredient_id", "name", "quantity"],
+            properties: {
+              ingredient_id: { bsonType: "objectId" },
+              name: { bsonType: "string", minLength: 1 },
+              quantity: { bsonType: ["double", "int"], minimum: 0 },
+              unit_of_measure: { enum: ["g", "ml", "kg", "l", "piece"] },
+              allergens: {
+                bsonType: "array",
+                items: {
+                  bsonType: "object",
+                  required: ["allergen_id", "name"],
+                  properties: {
+                    allergen_id: { bsonType: "objectId" },
+                    name: { bsonType: "string", minLength: 1 }
+                  }
+                }
+              }
+            }
+          }
+        },
 
         categories: {
           bsonType: "array",
@@ -566,3 +656,42 @@ dbRef.createCollection("complaints", {
 });
 
 print("Init OK: complaints");
+
+dbRef.createCollection("allergens", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name"],
+      properties: {
+        name: { bsonType: "string" },
+        description: { bsonType: ["string","null"] }
+      }
+    }
+  }
+});
+
+print("Init OK: allergens");
+
+
+dbRef.createCollection("opinions", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["course_id","customer_id","rating"],
+      properties: {
+        course_id: { bsonType: "objectId" },
+        customer_id: { bsonType: "objectId" },
+        rating: { bsonType: "int", minimum: 1, maximum: 5 },
+        opinion: { bsonType: ["string","null"] },
+        created_at: { bsonType: "date" }
+      }
+    }
+  }
+});
+
+dbRef.opinions.createIndex(
+  { course_id: 1, customer_id: 1 }, 
+  { unique: true }
+)
+
+print("Init OK: opinions");

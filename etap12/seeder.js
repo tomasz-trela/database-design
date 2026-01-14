@@ -2,13 +2,18 @@
 
 const dbRef = db.getSiblingDB("catering_company");
 
-const USERS_COUNT = 15000;
-const CUSTOMERS_COUNT = 14800;
-const COURSES_COUNT = 500;
-const ORDERS_COUNT = 50000;
-const INVOICES_COUNT = 21000;
+const USERS_COUNT = 5000;
+const CUSTOMERS_COUNT = 4800;
+const ALLERGENS_COUNT = 20;
+const INGREDIENTS_COUNT = 100;
+const MEAL_CATEGORIES_COUNT = 15;
+const COURSES_COUNT = 300;
+const ORDERS_COUNT = 10000;
+const INVOICES_COUNT = 5000;
+const COMPLAINTS_COUNT = 200;
+const OPINIONS_COUNT = 2000;
 
-/// ===== Helper unctions =====
+/// ===== Helper Functions =====
 
 function nowMinusDays(days) {
   const d = new Date();
@@ -48,8 +53,13 @@ function asDouble(x) {
 }
 
 function randomMacroDouble(min, max) {
-  const v = Math.round((min + Math.random() * (max - min)) * 10) / 10;
-  return asDouble(v.toFixed(1));
+  const v = (min + Math.random() * (max - min)).toFixed(1);
+  return asDouble(v);
+}
+
+function randomQuantityDouble(min, max) {
+  const v = (min + Math.random() * (max - min)).toFixed(1);
+  return asDouble(v);
 }
 
 // ===== Script =====
@@ -67,6 +77,15 @@ print("Users collection cleared.");
 dbRef.customers.deleteMany({});
 print("Customers collection cleared.");
 
+dbRef.allergens.deleteMany({});
+print("Allergens collection cleared.");
+
+dbRef.ingredients.deleteMany({});
+print("Ingredients collection cleared.");
+
+dbRef.meal_categories.deleteMany({});
+print("Meal categories collection cleared.");
+
 dbRef.courses.deleteMany({});
 print("Courses collection cleared.");
 
@@ -75,6 +94,12 @@ print("Orders collection cleared.");
 
 dbRef.invoices.deleteMany({});
 print("Invoices collection cleared.");
+
+dbRef.opinions.deleteMany({});
+print("Opinions collection cleared.");
+
+dbRef.meal_categories.deleteMany({});
+print("Meal Categories added")
 
 print();
 
@@ -126,6 +151,119 @@ for (let i = 1; i <= USERS_COUNT; i++) {
 
 const count = dbRef.users.countDocuments();
 print(`Users inserted: ${count}`);
+
+// ===== Allergens seeding =====
+
+const allergenNames = [
+  "Gluten", "Crustaceans", "Eggs", "Fish", "Peanuts",
+  "Soybeans", "Milk", "Nuts", "Celery", "Mustard",
+  "Sesame", "Sulphites", "Lupin", "Molluscs", "Corn",
+  "Tomatoes", "Citrus", "Strawberries", "Kiwi", "Shellfish"
+];
+
+const allergenIds = [];
+
+for (let i = 0; i < ALLERGENS_COUNT && i < allergenNames.length; i++) {
+  const allergen = {
+    _id: new ObjectId(),
+    name: allergenNames[i],
+    description: `Allergen: ${allergenNames[i]}`
+  };
+  
+  dbRef.allergens.updateOne(
+    { name: allergen.name },
+    { $setOnInsert: allergen },
+    { upsert: true }
+  );
+  
+  // Zapisujemy jako obiekt z allergen_id i name dla embeddingu
+  allergenIds.push({ allergen_id: allergen._id, name: allergen.name });
+}
+
+print(`Allergens inserted: ${dbRef.allergens.countDocuments()}`);
+
+// ===== Ingredients seeding =====
+
+const ingredientNames = [
+  "Chicken breast", "Beef sirloin", "Salmon fillet", "Tuna", "Shrimp",
+  "Eggs", "Milk", "Butter", "Olive oil", "Rice",
+  "Pasta", "Potatoes", "Sweet potatoes", "Quinoa", "Oats",
+  "Broccoli", "Spinach", "Tomatoes", "Carrots", "Onions",
+  "Garlic", "Bell peppers", "Mushrooms", "Zucchini", "Cauliflower",
+  "Avocado", "Banana", "Apple", "Orange", "Strawberries",
+  "Blueberries", "Almonds", "Walnuts", "Peanuts", "Cashews",
+  "Chickpeas", "Lentils", "Black beans", "Tofu", "Tempeh",
+  "Greek yogurt", "Cottage cheese", "Cheddar cheese", "Mozzarella", "Parmesan",
+  "Whole wheat bread", "White bread", "Tortillas", "Pita bread", "Bagels",
+  "Honey", "Maple syrup", "Brown sugar", "White sugar", "Salt",
+  "Black pepper", "Cumin", "Paprika", "Oregano", "Basil",
+  "Cilantro", "Parsley", "Thyme", "Rosemary", "Ginger",
+  "Soy sauce", "Vinegar", "Lemon juice", "Lime juice", "Hot sauce",
+  "Ketchup", "Mustard", "Mayonnaise", "Pesto", "Hummus",
+  "Coconut milk", "Almond milk", "Heavy cream", "Sour cream", "Cream cheese",
+  "Dark chocolate", "Cocoa powder", "Vanilla extract", "Cinnamon", "Nutmeg",
+  "Flour", "Cornstarch", "Baking powder", "Baking soda", "Yeast",
+  "Green tea", "Coffee", "Red wine", "White wine", "Beer",
+  "Chicken stock", "Beef stock", "Vegetable stock", "Coconut oil", "Sesame oil"
+];
+
+const ingredientDocs = [];
+
+for (let i = 0; i < INGREDIENTS_COUNT && i < ingredientNames.length; i++) {
+  const ingredientAllergens = [];
+  
+  // Niektóre składniki mają alergeny
+  if (allergenIds.length > 0 && randInt(0, 3) === 0) {
+    const allergenCount = randInt(1, 2);
+    for (let a = 0; a < allergenCount && a < allergenIds.length; a++) {
+      const allergen = pickOne(allergenIds);
+      if (!ingredientAllergens.find(al => al.allergen_id.equals(allergen.allergen_id))) {
+        ingredientAllergens.push(allergen);
+      }
+    }
+  }
+  
+  const ingredient = {
+    _id: new ObjectId(),
+    name: ingredientNames[i],
+    unit_of_measure: pickOne(["g", "ml", "kg", "l", "piece"]),
+    protein_100g: randomMacroDouble(0.0, 30.0),
+    fat_100g: randomMacroDouble(0.0, 40.0),
+    carbohydrates_100g: randomMacroDouble(0.0, 80.0),
+    calories_100g: randInt(10, 600),
+    allergens: ingredientAllergens
+  };
+  
+  dbRef.ingredients.insertOne(ingredient);
+  ingredientDocs.push(ingredient);
+}
+
+print(`Ingredients inserted: ${dbRef.ingredients.countDocuments()}`);
+
+// ===== Meal Categories seeding =====
+
+const categoryNames = [
+  "Breakfast", "Lunch", "Dinner", "Snack", "Dessert",
+  "Vegan", "Vegetarian", "Keto", "Low-carb", "High-protein",
+  "Gluten-free", "Dairy-free", "Mediterranean", "Asian", "Italian"
+];
+
+const categoryIds = [];
+
+dbRef.meal_categories.deleteMany({});
+
+for (let i = 0; i < categoryNames.length; i++) {
+  const category = {
+    _id: new ObjectId(),
+    name: categoryNames[i],
+    description: `Category: ${categoryNames[i]}`
+  };
+  
+  dbRef.meal_categories.insertOne(category);
+  categoryIds.push({ category_id: category._id, name: category.name });
+}
+
+print(`Meal categories inserted: ${dbRef.meal_categories.countDocuments()}`);
 
 // ===== Customers seeding =====
 
@@ -185,7 +323,35 @@ for (let i = 0; i < customersToSeed; i++) {
     );
   }
 
+  const customerAllergens = [];
+  if (allergenIds.length > 0 && randInt(0, 2) === 0) {
+    const allergenCount = randInt(1, 3);
+    for (let a = 0; a < allergenCount && a < allergenIds.length; a++) {
+      const allergen = pickOne(allergenIds);
+      if (!customerAllergens.find(al => al.allergen_id.equals(allergen.allergen_id))) {
+        customerAllergens.push(allergen);
+      }
+    }
+  }
+
+  const preferences = [];
+  if (ingredientDocs.length > 0 && randInt(0, 1) === 0) {
+    const prefCount = randInt(1, 5);
+    for (let p = 0; p < prefCount; p++) {
+      const ingredient = pickOne(ingredientDocs);
+      if (!preferences.find(pr => pr.ingredient_id.equals(ingredient._id))) {
+        preferences.push({
+          ingredient_id: ingredient._id,
+          name: ingredient.name,
+          rating: randInt(1, 5)
+        });
+      }
+    }
+  }
+
   const customer = createCustomerObject({ user_id: u._id, addresses });
+  customer.allergens = customerAllergens;
+  customer.preferences = preferences;
 
   dbRef.customers.updateOne(
     { user_id: u._id },
@@ -201,6 +367,36 @@ print(`Customers inserted: ${customersCount}`);
 
 function createCourseObject({ nameSeed, createdDaysAgo = 0 }) {
   const createdAt = nowMinusDays(createdDaysAgo);
+  
+  const ingredients = [];
+  if (ingredientDocs.length > 0) {
+    const ingredientCount = randInt(3, 8);
+    for (let ing = 0; ing < ingredientCount && ing < ingredientDocs.length; ing++) {
+      const ingredient = pickOne(ingredientDocs);
+      
+      if (!ingredients.find(i => i.ingredient_id.equals(ingredient._id))) {
+        ingredients.push({
+          ingredient_id: ingredient._id,
+          name: ingredient.name,
+          quantity: randomQuantityDouble(10.0, 500.0),
+          unit_of_measure: ingredient.unit_of_measure,
+          allergens: ingredient.allergens || []
+        });
+      }
+    }
+  }
+  
+  const courseCategories = [];
+  if (categoryIds.length > 0) {
+    const catCount = randInt(1, 3);
+    for (let c = 0; c < catCount && c < categoryIds.length; c++) {
+      const cat = pickOne(categoryIds);
+      if (!courseCategories.find(cc => cc.category_id.equals(cat.category_id))) {
+        courseCategories.push(cat);
+      }
+    }
+  }
+  
   return {
     _id: new ObjectId(),
     name: `Course ${nameSeed}`,
@@ -212,6 +408,8 @@ function createCourseObject({ nameSeed, createdDaysAgo = 0 }) {
     fat_100g: randomMacroDouble(0.0, 40.0),
     created_at: createdAt,
     updated_at: createdAt,
+    ingredients,
+    categories: courseCategories
   };
 }
 
@@ -508,6 +706,40 @@ for (const order of ordersForInvoices) {
 }
 
 print(`Invoices inserted: ${dbRef.invoices.countDocuments()}`);
+print();
+
+
+// ===== Opinions seeding =====
+
+const ordersForOpinions = dbRef.orders.find().toArray();
+let opinionsInserted = 0;
+
+for (const order of ordersForOpinions) {
+  if (opinionsInserted >= OPINIONS_COUNT) break;
+  
+  for (const orderItem of order.order_items) {
+    if (opinionsInserted >= OPINIONS_COUNT) break;
+    
+    for (const course of orderItem.courses) {
+      if (opinionsInserted >= OPINIONS_COUNT) break;
+      
+      if (randInt(0, 9) > 7) {
+        const opinion = {
+          course_id: course.course_id,
+          customer_id: order.customer_id,
+          rating: randInt(1, 5),
+          opinion: randInt(0, 1) === 0 ? null : `Opinion about ${course.name}`,
+          created_at: addDays(order.placed_at, randInt(1, 10))
+        };
+        
+        dbRef.opinions.insertOne(opinion);
+        opinionsInserted++;
+      }
+    }
+  }
+}
+
+print(`Opinions inserted: ${dbRef.opinions.countDocuments()}`);
 print();
 
 // end of script
