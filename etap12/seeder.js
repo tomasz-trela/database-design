@@ -598,6 +598,8 @@ for (let i = 1; i <= ORDERS_COUNT; i++) {
   const customer = pickOne(customerUserDocs);
 
   const placedAt = nowMinusDays(randInt(0, 60));
+  placedAt.setHours(randInt(8, 22), randInt(0, 59), randInt(0, 59));
+
   const status = pickOne(ORDER_STATUSES);
 
   const order = createOrderObject({
