@@ -882,10 +882,35 @@ if (cookUserDocs.length === 0) {
       const status = pickOne(FULFILLMENT_STATUSES);
       const now = new Date();
       
+      // Build order_item snapshot with course info and ingredients
+      const orderItemSnapshot = {
+        name: orderItem.courses.length > 0 ? orderItem.courses[0].name : `Order Item ${orderItem._id}`,
+        description: `Order item containing ${orderItem.courses.length} course(s)`,
+        ingredients: []
+      };
+      
+      // Gather ingredients from the courses in this order item
+      for (const course of orderItem.courses) {
+        const originalCourse = courseDocs.find(c => c._id.equals(course.course_id));
+        if (originalCourse && originalCourse.ingredients) {
+          for (const ing of originalCourse.ingredients) {
+            if (!orderItemSnapshot.ingredients.find(i => i.ingredient_id.equals(ing.ingredient_id))) {
+              orderItemSnapshot.ingredients.push({
+                ingredient_id: ing.ingredient_id,
+                name: ing.name,
+                quantity: ing.quantity,
+                unit_of_measure: ing.unit_of_measure
+              });
+            }
+          }
+        }
+      }
+      
       const fulfillment = {
         _id: new ObjectId(),
         order_id: order._id,
         order_item_id: orderItem._id,
+        order_item: orderItemSnapshot,
         cook_id: pickOne(cookUserDocs)._id,
         status,
         began_at: status === "pending" ? null : addDays(order.placed_at, randInt(0, 1)),

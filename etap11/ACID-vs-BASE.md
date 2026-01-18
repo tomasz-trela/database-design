@@ -12,7 +12,7 @@ W systemach rozproszonych drogie i problematyczne (koordynacja, blokady, większ
 
 # BASE (NoSQL + systemy rozporszone)
 
-1. B - Bassically Available - system zawsze dostępny, odpowiada, nawet jeśli odpowiedź nie jest zawsze aktualna
+1. BA - Bassically Available - system zawsze dostępny, odpowiada, nawet jeśli odpowiedź nie jest zawsze aktualna
 2. S - Soft state - stan systemu może się zmieniać w czasie bez operacji użytkownika (np. asynchroniczna replikacja, synchronizacja, itp..)
 3. E - Eventual consistency - docelowo dane się synchronizują, ale mogą wystąpić nispójności ze względu na konieczność dostępności danych natychmiast
 

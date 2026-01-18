@@ -665,6 +665,26 @@ dbRef.createCollection("fulfillments", {
         _id: { bsonType: "objectId" },
         order_id: { bsonType: "objectId" },
         order_item_id: { bsonType: "objectId" },
+        order_item: {
+          bsonType: "object",
+          properties: {
+            name: { bsonType: "string", minLength: 1 },
+            description: { bsonType: "string", minLength: 1 },
+            ingredients: {
+              bsonType: "array",
+              items: {
+                bsonType: "object",
+                required: ["ingredient_id", "name", "quantity"],
+                properties: {
+                  ingredient_id: { bsonType: "objectId" },
+                  name: { bsonType: "string", minLength: 1 },
+                  quantity: { bsonType: ["double", "int"], minimum: 0 },
+                  unit_of_measure: { enum: ["g", "ml", "kg", "l", "piece"] },
+                }
+              }
+            },
+          }
+        },
         cook_id: { bsonType: "objectId" },
 
         status: { enum: ["pending", "in_preparation", "completed", "cancelled"] },
