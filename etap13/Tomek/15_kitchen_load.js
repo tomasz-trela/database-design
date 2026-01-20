@@ -110,6 +110,10 @@ const result = dbRef.fulfillments.aggregate([
   
   {
     $sort: { deviation_from_median: -1 }
+  },
+  
+  {
+    $limit: 10
   }
 ]);
 

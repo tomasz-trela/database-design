@@ -9,6 +9,6 @@ const result = dbRef.courses.find(
     name: 1,
     calories_100g: 1
   }
-);
+)
 
 result.forEach(doc => printjson(doc));

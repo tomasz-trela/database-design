@@ -37,6 +37,10 @@ const result = dbRef.orders.aggregate([
 
   {
     $sort: { gross_total: -1 }
+  },
+  
+  {
+    $limit: 10
   }
 ]);
 

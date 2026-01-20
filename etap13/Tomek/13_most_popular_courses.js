@@ -27,6 +27,10 @@ const result = dbRef.orders.aggregate([
   
   {
     $sort: { times_ordered: -1 }
+  },
+  
+  {
+    $limit: 10
   }
 ]);
 

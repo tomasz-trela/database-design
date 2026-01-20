@@ -179,6 +179,10 @@ const result = dbRef.fulfillments.aggregate([
   
   {
     $sort: { overall_score: -1 }
+  },
+  
+  {
+    $limit: 10
   }
 ]);
 
