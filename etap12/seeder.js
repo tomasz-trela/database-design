@@ -2,11 +2,21 @@
 
 const dbRef = db.getSiblingDB("catering_company");
 
-const USERS_COUNT = 5000;
+// const USERS_COUNT = 5000;
+// const ALLERGENS_COUNT = 20;
+// const INGREDIENTS_COUNT = 100;
+// const COURSES_COUNT = 300;
+// const ORDERS_COUNT = 20000;
+// const DAILY_MENUS_COUNT = 60;
+// const MEAL_PLANS_COUNT = 50;
+// const COMPLAINTS_COUNT = 200;
+// const OPINIONS_COUNT = 2000;
+
+const USERS_COUNT = 6250;
 const ALLERGENS_COUNT = 20;
 const INGREDIENTS_COUNT = 100;
-const COURSES_COUNT = 300;
-const ORDERS_COUNT = 10000;
+const COURSES_COUNT = 60000;
+const ORDERS_COUNT = 5000;
 const DAILY_MENUS_COUNT = 60;
 const MEAL_PLANS_COUNT = 50;
 const COMPLAINTS_COUNT = 200;
@@ -119,10 +129,26 @@ print();
 // ===== Allergens seeding =====
 
 const allergenNames = [
-  "Gluten", "Crustaceans", "Eggs", "Fish", "Peanuts",
-  "Soybeans", "Milk", "Nuts", "Celery", "Mustard",
-  "Sesame", "Sulphites", "Lupin", "Molluscs", "Corn",
-  "Tomatoes", "Citrus", "Strawberries", "Kiwi", "Shellfish"
+  "Gluten",
+  "Crustaceans",
+  "Eggs",
+  "Fish",
+  "Peanuts",
+  "Soybeans",
+  "Milk",
+  "Nuts",
+  "Celery",
+  "Mustard",
+  "Sesame",
+  "Sulphites",
+  "Lupin",
+  "Molluscs",
+  "Corn",
+  "Tomatoes",
+  "Citrus",
+  "Strawberries",
+  "Kiwi",
+  "Shellfish",
 ];
 
 const allergenDocs = [];
@@ -131,15 +157,15 @@ for (let i = 0; i < ALLERGENS_COUNT && i < allergenNames.length; i++) {
   const allergen = {
     _id: new ObjectId(),
     name: allergenNames[i],
-    description: `Allergen: ${allergenNames[i]}`
+    description: `Allergen: ${allergenNames[i]}`,
   };
-  
+
   dbRef.allergens.updateOne(
     { name: allergen.name },
     { $setOnInsert: allergen },
-    { upsert: true }
+    { upsert: true },
   );
-  
+
   allergenDocs.push({ allergen_id: allergen._id, name: allergen.name });
 }
 
@@ -148,43 +174,127 @@ print(`Allergens inserted: ${dbRef.allergens.countDocuments()}`);
 // ===== Ingredients seeding =====
 
 const ingredientNames = [
-  "Chicken breast", "Beef sirloin", "Salmon fillet", "Tuna", "Shrimp",
-  "Eggs", "Milk", "Butter", "Olive oil", "Rice",
-  "Pasta", "Potatoes", "Sweet potatoes", "Quinoa", "Oats",
-  "Broccoli", "Spinach", "Tomatoes", "Carrots", "Onions",
-  "Garlic", "Bell peppers", "Mushrooms", "Zucchini", "Cauliflower",
-  "Avocado", "Banana", "Apple", "Orange", "Strawberries",
-  "Blueberries", "Almonds", "Walnuts", "Peanuts", "Cashews",
-  "Chickpeas", "Lentils", "Black beans", "Tofu", "Tempeh",
-  "Greek yogurt", "Cottage cheese", "Cheddar cheese", "Mozzarella", "Parmesan",
-  "Whole wheat bread", "White bread", "Tortillas", "Pita bread", "Bagels",
-  "Honey", "Maple syrup", "Brown sugar", "White sugar", "Salt",
-  "Black pepper", "Cumin", "Paprika", "Oregano", "Basil",
-  "Cilantro", "Parsley", "Thyme", "Rosemary", "Ginger",
-  "Soy sauce", "Vinegar", "Lemon juice", "Lime juice", "Hot sauce",
-  "Ketchup", "Mustard", "Mayonnaise", "Pesto", "Hummus",
-  "Coconut milk", "Almond milk", "Heavy cream", "Sour cream", "Cream cheese",
-  "Dark chocolate", "Cocoa powder", "Vanilla extract", "Cinnamon", "Nutmeg",
-  "Flour", "Cornstarch", "Baking powder", "Baking soda", "Yeast",
-  "Green tea", "Coffee", "Red wine", "White wine", "Beer",
-  "Chicken stock", "Beef stock", "Vegetable stock", "Coconut oil", "Sesame oil"
+  "Chicken breast",
+  "Beef sirloin",
+  "Salmon fillet",
+  "Tuna",
+  "Shrimp",
+  "Eggs",
+  "Milk",
+  "Butter",
+  "Olive oil",
+  "Rice",
+  "Pasta",
+  "Potatoes",
+  "Sweet potatoes",
+  "Quinoa",
+  "Oats",
+  "Broccoli",
+  "Spinach",
+  "Tomatoes",
+  "Carrots",
+  "Onions",
+  "Garlic",
+  "Bell peppers",
+  "Mushrooms",
+  "Zucchini",
+  "Cauliflower",
+  "Avocado",
+  "Banana",
+  "Apple",
+  "Orange",
+  "Strawberries",
+  "Blueberries",
+  "Almonds",
+  "Walnuts",
+  "Peanuts",
+  "Cashews",
+  "Chickpeas",
+  "Lentils",
+  "Black beans",
+  "Tofu",
+  "Tempeh",
+  "Greek yogurt",
+  "Cottage cheese",
+  "Cheddar cheese",
+  "Mozzarella",
+  "Parmesan",
+  "Whole wheat bread",
+  "White bread",
+  "Tortillas",
+  "Pita bread",
+  "Bagels",
+  "Honey",
+  "Maple syrup",
+  "Brown sugar",
+  "White sugar",
+  "Salt",
+  "Black pepper",
+  "Cumin",
+  "Paprika",
+  "Oregano",
+  "Basil",
+  "Cilantro",
+  "Parsley",
+  "Thyme",
+  "Rosemary",
+  "Ginger",
+  "Soy sauce",
+  "Vinegar",
+  "Lemon juice",
+  "Lime juice",
+  "Hot sauce",
+  "Ketchup",
+  "Mustard",
+  "Mayonnaise",
+  "Pesto",
+  "Hummus",
+  "Coconut milk",
+  "Almond milk",
+  "Heavy cream",
+  "Sour cream",
+  "Cream cheese",
+  "Dark chocolate",
+  "Cocoa powder",
+  "Vanilla extract",
+  "Cinnamon",
+  "Nutmeg",
+  "Flour",
+  "Cornstarch",
+  "Baking powder",
+  "Baking soda",
+  "Yeast",
+  "Green tea",
+  "Coffee",
+  "Red wine",
+  "White wine",
+  "Beer",
+  "Chicken stock",
+  "Beef stock",
+  "Vegetable stock",
+  "Coconut oil",
+  "Sesame oil",
 ];
 
 const ingredientDocs = [];
 
 for (let i = 0; i < INGREDIENTS_COUNT && i < ingredientNames.length; i++) {
   const ingredientAllergens = [];
-  
+
   if (allergenDocs.length > 0 && randInt(0, 3) === 0) {
     const allergenCount = randInt(1, 2);
     for (let a = 0; a < allergenCount && a < allergenDocs.length; a++) {
       const allergen = pickOne(allergenDocs);
-      if (!ingredientAllergens.find(al => al.allergen_id.equals(allergen.allergen_id))) {
+      if (
+        !ingredientAllergens.find((al) =>
+          al.allergen_id.equals(allergen.allergen_id),
+        )
+      ) {
         ingredientAllergens.push(allergen);
       }
     }
   }
-  
+
   const ingredient = {
     _id: new ObjectId(),
     name: ingredientNames[i],
@@ -193,9 +303,9 @@ for (let i = 0; i < INGREDIENTS_COUNT && i < ingredientNames.length; i++) {
     fat_100g: randomMacroDouble(0.0, 40.0),
     carbohydrates_100g: randomMacroDouble(0.0, 80.0),
     calories_100g: randInt(10, 600),
-    allergens: ingredientAllergens
+    allergens: ingredientAllergens,
   };
-  
+
   dbRef.ingredients.insertOne(ingredient);
   ingredientDocs.push(ingredient);
 }
@@ -204,63 +314,76 @@ print(`Ingredients inserted: ${dbRef.ingredients.countDocuments()}`);
 
 // ===== Course Categories seeding =====
 
-const categoryNames = ["Vegan", "Pescatarian", "Vegetarian", "Breakfast", "Lunch", "Dinner"];
+const categoryNames = [
+  "Vegan",
+  "Pescatarian",
+  "Vegetarian",
+  "Breakfast",
+  "Lunch",
+  "Dinner",
+];
 const categoryDocs = [];
 
 for (let i = 0; i < categoryNames.length; i++) {
   const category = {
     _id: new ObjectId(),
     name: categoryNames[i],
-    description: `Category: ${categoryNames[i]}`
+    description: `Category: ${categoryNames[i]}`,
   };
-  
+
   dbRef.course_categories.updateOne(
     { name: category.name },
     { $setOnInsert: category },
-    { upsert: true }
+    { upsert: true },
   );
-  
+
   categoryDocs.push(category);
 }
 
-print(`Course categories inserted: ${dbRef.course_categories.countDocuments()}`);
+print(
+  `Course categories inserted: ${dbRef.course_categories.countDocuments()}`,
+);
 
 // ===== Courses seeding =====
 
 function createCourseObject({ nameSeed, createdDaysAgo = 0 }) {
   const createdAt = nowMinusDays(createdDaysAgo);
-  
+
   const ingredients = [];
   if (ingredientDocs.length > 0) {
     const ingredientCount = randInt(3, 8);
-    for (let ing = 0; ing < ingredientCount && ing < ingredientDocs.length; ing++) {
+    for (
+      let ing = 0;
+      ing < ingredientCount && ing < ingredientDocs.length;
+      ing++
+    ) {
       const ingredient = pickOne(ingredientDocs);
-      
-      if (!ingredients.find(i => i.ingredient_id.equals(ingredient._id))) {
+
+      if (!ingredients.find((i) => i.ingredient_id.equals(ingredient._id))) {
         ingredients.push({
           ingredient_id: ingredient._id,
           name: ingredient.name,
           quantity: randomQuantityDouble(10.0, 500.0),
           unit_of_measure: ingredient.unit_of_measure,
-          allergens: ingredient.allergens || []
+          allergens: ingredient.allergens || [],
         });
       }
     }
   }
-  
+
   // Categories referencing the course_categories collection
   const courseCategories = [];
   const catCount = randInt(1, 3);
   for (let c = 0; c < catCount; c++) {
     const cat = pickOne(categoryDocs);
-    if (!courseCategories.find(cc => cc.category_id.equals(cat._id))) {
+    if (!courseCategories.find((cc) => cc.category_id.equals(cat._id))) {
       courseCategories.push({
         category_id: cat._id,
-        name: cat.name
+        name: cat.name,
       });
     }
   }
-  
+
   return {
     _id: new ObjectId(),
     name: `Course ${nameSeed}`,
@@ -273,7 +396,7 @@ function createCourseObject({ nameSeed, createdDaysAgo = 0 }) {
     created_at: createdAt,
     updated_at: createdAt,
     ingredients,
-    categories: courseCategories
+    categories: courseCategories,
   };
 }
 
@@ -342,15 +465,15 @@ function createUserObject({
     date_removed: null,
     last_login: null,
   };
-  
+
   if (customerData) {
     user.customer_data = customerData;
   }
-  
+
   if (staffData) {
     user.staff_data = staffData;
   }
-  
+
   return user;
 }
 
@@ -362,7 +485,7 @@ const dieticianUserDocs = [];
 
 for (let i = 1; i <= USERS_COUNT; i++) {
   const login = `user${String(i).padStart(4, "0")}`;
-  
+
   // Determine user type:
   // - First 80% are customers only
   // - Next 15% are staff only (cook, courier, dietician, admin)
@@ -370,20 +493,23 @@ for (let i = 1; i <= USERS_COUNT; i++) {
   let roles = [];
   let customerData = null;
   let staffData = null;
-  
-  const isCustomerOnly = i <= USERS_COUNT * 0.80;
-  const isStaffOnly = i > USERS_COUNT * 0.80 && i <= USERS_COUNT * 0.95;
+
+  const isCustomerOnly = i <= USERS_COUNT * 0.8;
+  const isStaffOnly = i > USERS_COUNT * 0.8 && i <= USERS_COUNT * 0.95;
   const isStaffAndCustomer = i > USERS_COUNT * 0.95;
-  
+
   // Assign staff role if applicable
   if (isStaffOnly || isStaffAndCustomer) {
     const staffRole = pickOne(["cook", "courier", "dietician", "admin"]);
     roles.push(staffRole);
-    
+
     staffData = {};
-    
+
     if (staffRole === "cook") {
-      staffData.specialties = pickN(["Italian", "Asian", "French", "Mexican", "Mediterranean"], randInt(1, 3));
+      staffData.specialties = pickN(
+        ["Italian", "Asian", "French", "Mexican", "Mediterranean"],
+        randInt(1, 3),
+      );
     } else if (staffRole === "courier") {
       staffData.courier_type = pickOne(COURIER_TYPES);
     } else if (staffRole === "dietician") {
@@ -391,66 +517,77 @@ for (let i = 1; i <= USERS_COUNT; i++) {
     }
     // admin has no specific staff_data fields
   }
-  
+
   // Assign customer role and customer_data if applicable
   if (isCustomerOnly || isStaffAndCustomer) {
     roles.push("customer");
-    
+
     // Create customer_data
     const addrCount = randInt(1, 5);
     const addresses = [];
     for (let a = 0; a < addrCount; a++) {
-      addresses.push(createAddressObject({
-        country: "Poland",
-        city: `City${i}`,
-        postal_code: `00-${String((i) % 100).padStart(2, "0")}${a}`,
-        street_name: `Street${i}`,
-        street_number: `${i}`,
-        apartment: a % 2 === 0 ? null : `${i}${String.fromCharCode(65 + a)}`,
-        createdDaysAgo: i + a,
-      }));
+      addresses.push(
+        createAddressObject({
+          country: "Poland",
+          city: `City${i}`,
+          postal_code: `00-${String(i % 100).padStart(2, "0")}${a}`,
+          street_name: `Street${i}`,
+          street_number: `${i}`,
+          apartment: a % 2 === 0 ? null : `${i}${String.fromCharCode(65 + a)}`,
+          createdDaysAgo: i + a,
+        }),
+      );
     }
-    
+
     const customerAllergens = [];
     if (allergenDocs.length > 0 && randInt(0, 2) === 0) {
       const allergenCount = randInt(1, 3);
       for (let a = 0; a < allergenCount; a++) {
         const allergen = pickOne(allergenDocs);
-        if (!customerAllergens.find(al => al.allergen_id.equals(allergen.allergen_id))) {
+        if (
+          !customerAllergens.find((al) =>
+            al.allergen_id.equals(allergen.allergen_id),
+          )
+        ) {
           customerAllergens.push(allergen);
         }
       }
     }
-    
+
     const preferences = [];
     if (ingredientDocs.length > 0 && randInt(0, 1) === 0) {
       const prefCount = randInt(1, 5);
       for (let p = 0; p < prefCount; p++) {
         const ingredient = pickOne(ingredientDocs);
-        if (!preferences.find(pr => pr.ingredient_id.equals(ingredient._id))) {
+        if (
+          !preferences.find((pr) => pr.ingredient_id.equals(ingredient._id))
+        ) {
           preferences.push({
             ingredient_id: ingredient._id,
             name: ingredient.name,
-            rating: randInt(1, 5)
+            rating: randInt(1, 5),
           });
         }
       }
     }
-    
+
     customerData = {
       preferences,
       addresses,
       default_address_id: addresses.length > 0 ? addresses[0]._id : null,
-      allergens: customerAllergens
+      allergens: customerAllergens,
     };
   }
-  
+
   const u = createUserObject({
     login,
     email: `${login}@mail.com`,
     name: `Name${i}`,
     surname: `Surname${i}`,
-    phone: i % 3 === 0 ? null : `48${(100000000 + i).toString().slice(0, 9)}`.slice(0, 16),
+    phone:
+      i % 3 === 0
+        ? null
+        : `48${(100000000 + i).toString().slice(0, 9)}`.slice(0, 16),
     roles,
     createdDaysAgo: i,
     customerData,
@@ -460,7 +597,7 @@ for (let i = 1; i <= USERS_COUNT; i++) {
   dbRef.users.insertOne(u);
   u._id = dbRef.users.findOne({ login: u.login })._id;
   userDocs.push(u);
-  
+
   if (roles.includes("customer")) {
     customerUserDocs.push(u);
   }
@@ -520,7 +657,7 @@ function createCourseInOrderItemObject(course) {
 function createOrderItemObject({ placedAt, itemIdx }) {
   const expectedDays = randInt(1, 7);
 
-  const coursesCount = randInt(1, 5);
+  const coursesCount = randInt(1, 8);
   const courses = [];
 
   for (let c = 0; c < coursesCount; c++) {
@@ -565,7 +702,7 @@ function createOrderObject({ status, placedAt, customerId, seedIdx }) {
 
   for (let i = 0; i < orderItemsCount; i++) {
     orderItems.push(
-      createOrderItemObject({ placedAt, itemIdx: seedIdx * 100 + i + 1 })
+      createOrderItemObject({ placedAt, itemIdx: seedIdx * 100 + i + 1 }),
     );
   }
 
@@ -738,7 +875,7 @@ print(`Invoices inserted: ${dbRef.invoices.countDocuments()}`);
 function createMenuCoursesSnapshots(courseCount, courseDocs) {
   const coursesSnapshot = [];
   const selectedCourses = pickN(courseDocs, courseCount);
-  
+
   for (let seq = 0; seq < selectedCourses.length; seq++) {
     const course = selectedCourses[seq];
     coursesSnapshot.push({
@@ -749,7 +886,7 @@ function createMenuCoursesSnapshots(courseCount, courseDocs) {
       protein: course.protein_100g,
       carbohydrates: course.carbohydrates_100g,
       fat: course.fat_100g,
-      sequence: seq + 1
+      sequence: seq + 1,
     });
   }
   return coursesSnapshot;
@@ -761,24 +898,24 @@ if (dieticianUserDocs.length === 0) {
   for (let i = 0; i < DAILY_MENUS_COUNT; i++) {
     const menuDate = nowMinusDays(i);
     const dietician = pickOne(dieticianUserDocs);
-    
+
     const courseCount = randInt(3, 8);
     const coursesSnapshot = createMenuCoursesSnapshots(courseCount, courseDocs);
-     
+
     const dailyMenu = {
       _id: new ObjectId(),
       menu_date: menuDate,
       dietician_id: dietician._id,
-      courses_snapshot: coursesSnapshot
+      courses_snapshot: coursesSnapshot,
     };
-    
+
     dbRef.daily_menus.updateOne(
       { menu_date: dailyMenu.menu_date },
       { $setOnInsert: dailyMenu },
-      { upsert: true }
+      { upsert: true },
     );
   }
-  
+
   print(`Daily menus inserted: ${dbRef.daily_menus.countDocuments()}`);
 }
 
@@ -792,55 +929,64 @@ if (dieticianUserDocs.length === 0) {
     const startDate = nowMinusDays(randInt(0, 90));
     const daysCount = randInt(3, 14);
     const endDate = addDays(startDate, daysCount);
-    
+
     const days = [];
     for (let d = 1; d <= daysCount; d++) {
       const courseCount = randInt(3, 6);
-      const coursesSnapshot = createMenuCoursesSnapshots(courseCount, courseDocs);
-          
+      const coursesSnapshot = createMenuCoursesSnapshots(
+        courseCount,
+        courseDocs,
+      );
+
       days.push({
         day_number: d,
-        courses_snapshot: coursesSnapshot
+        courses_snapshot: coursesSnapshot,
       });
     }
-    
+
     const mealPlan = {
       _id: new ObjectId(),
       name: `Meal Plan ${i + 1}`,
-      description: randInt(0, 1) === 0 ? null : `Description for meal plan ${i + 1}`,
+      description:
+        randInt(0, 1) === 0 ? null : `Description for meal plan ${i + 1}`,
       dietician_id: dietician._id,
       start_date: randInt(0, 1) === 0 ? null : startDate,
       end_date: randInt(0, 1) === 0 ? null : endDate,
-      days
+      days,
     };
-    
+
     dbRef.meal_plans.insertOne(mealPlan);
   }
-  
+
   print(`Meal plans inserted: ${dbRef.meal_plans.countDocuments()}`);
 }
 
 // ===== Complaints seeding =====
 
-const COMPLAINT_STATUSES = ["submitted", "under_review", "resolved_positive", "resolved_negative"];
+const COMPLAINT_STATUSES = [
+  "submitted",
+  "under_review",
+  "resolved_positive",
+  "resolved_negative",
+];
 
 let complaintsInserted = 0;
 
 for (const order of orderDocs) {
   if (complaintsInserted >= COMPLAINTS_COUNT) break;
-  
+
   // Only some orders have complaints (about 2% chance)
   if (randInt(0, 49) !== 0) continue;
-  
+
   for (const orderItem of order.order_items) {
     if (complaintsInserted >= COMPLAINTS_COUNT) break;
-    
+
     for (const course of orderItem.courses) {
       if (complaintsInserted >= COMPLAINTS_COUNT) break;
-      
+
       const status = pickOne(COMPLAINT_STATUSES);
       const createdAt = addDays(order.placed_at, randInt(1, 7));
-      
+
       const complaint = {
         _id: new ObjectId(),
         customer_id: order.customer_id,
@@ -850,15 +996,19 @@ for (const order of orderDocs) {
         course_snapshot: {
           course_id: course.course_id,
           name: course.name,
-          price: course.price
+          price: course.price,
         },
         status,
         description: `Complaint about ${course.name}: ${pickOne(["quality issue", "wrong order", "late delivery", "missing items", "taste issue"])}`,
-        refund_amount: status.startsWith("resolved_positive") ? randomPriceDecimal(5, 50) : null,
+        refund_amount: status.startsWith("resolved_positive")
+          ? randomPriceDecimal(5, 50)
+          : null,
         created_at: createdAt,
-        resolved_at: status.startsWith("resolved") ? addDays(createdAt, randInt(1, 14)) : null
+        resolved_at: status.startsWith("resolved")
+          ? addDays(createdAt, randInt(1, 14))
+          : null,
       };
-      
+
       dbRef.complaints.insertOne(complaint);
       complaintsInserted++;
       break; // One complaint per order item at most
@@ -870,42 +1020,56 @@ print(`Complaints inserted: ${dbRef.complaints.countDocuments()}`);
 
 // ===== Fulfillments seeding =====
 
-const FULFILLMENT_STATUSES = ["pending", "in_preparation", "completed", "cancelled"];
+const FULFILLMENT_STATUSES = [
+  "pending",
+  "in_preparation",
+  "completed",
+  "cancelled",
+];
 
 if (cookUserDocs.length === 0) {
   print("Warning: No cooks found. Skipping fulfillments seeding.");
 } else {
   let fulfillmentsInserted = 0;
-  
+
   for (const order of orderDocs) {
     for (const orderItem of order.order_items) {
       const status = pickOne(FULFILLMENT_STATUSES);
       const now = new Date();
-      
+
       // Build order_item snapshot with course info and ingredients
       const orderItemSnapshot = {
-        name: orderItem.courses.length > 0 ? orderItem.courses[0].name : `Order Item ${orderItem._id}`,
+        name:
+          orderItem.courses.length > 0
+            ? orderItem.courses[0].name
+            : `Order Item ${orderItem._id}`,
         description: `Order item containing ${orderItem.courses.length} course(s)`,
-        ingredients: []
+        ingredients: [],
       };
-      
+
       // Gather ingredients from the courses in this order item
       for (const course of orderItem.courses) {
-        const originalCourse = courseDocs.find(c => c._id.equals(course.course_id));
+        const originalCourse = courseDocs.find((c) =>
+          c._id.equals(course.course_id),
+        );
         if (originalCourse && originalCourse.ingredients) {
           for (const ing of originalCourse.ingredients) {
-            if (!orderItemSnapshot.ingredients.find(i => i.ingredient_id.equals(ing.ingredient_id))) {
+            if (
+              !orderItemSnapshot.ingredients.find((i) =>
+                i.ingredient_id.equals(ing.ingredient_id),
+              )
+            ) {
               orderItemSnapshot.ingredients.push({
                 ingredient_id: ing.ingredient_id,
                 name: ing.name,
                 quantity: ing.quantity,
-                unit_of_measure: ing.unit_of_measure
+                unit_of_measure: ing.unit_of_measure,
               });
             }
           }
         }
       }
-      
+
       const fulfillment = {
         _id: new ObjectId(),
         order_id: order._id,
@@ -913,28 +1077,38 @@ if (cookUserDocs.length === 0) {
         order_item: orderItemSnapshot,
         cook_id: pickOne(cookUserDocs)._id,
         status,
-        began_at: status === "pending" ? null : addDays(order.placed_at, randInt(0, 1)),
-        completed_at: status === "completed" ? addDays(order.placed_at, randInt(1, 2)) : null,
+        began_at:
+          status === "pending" ? null : addDays(order.placed_at, randInt(0, 1)),
+        completed_at:
+          status === "completed"
+            ? addDays(order.placed_at, randInt(1, 2))
+            : null,
         last_updated_at: now,
-        notes: randInt(0, 4) === 0 ? `Note for order item ${orderItem._id}` : null
+        notes:
+          randInt(0, 4) === 0 ? `Note for order item ${orderItem._id}` : null,
       };
-      
+
       dbRef.fulfillments.updateOne(
         { order_item_id: fulfillment.order_item_id },
         { $setOnInsert: fulfillment },
-        { upsert: true }
+        { upsert: true },
       );
-      
+
       fulfillmentsInserted++;
     }
   }
-  
+
   print(`Fulfillments inserted: ${dbRef.fulfillments.countDocuments()}`);
 }
 
 // ===== Deliveries seeding =====
 
-const DELIVERY_STATUSES = ["awaiting_pickup", "in_transit", "delivered", "failed"];
+const DELIVERY_STATUSES = [
+  "awaiting_pickup",
+  "in_transit",
+  "delivered",
+  "failed",
+];
 
 if (courierUserDocs.length === 0) {
   print("Warning: No couriers found. Skipping deliveries seeding.");
@@ -943,28 +1117,38 @@ if (courierUserDocs.length === 0) {
     for (const orderItem of order.order_items) {
       const status = pickOne(DELIVERY_STATUSES);
       const now = new Date();
-      
+
       const delivery = {
         _id: new ObjectId(),
         order_id: order._id,
         order_item_id: orderItem._id,
-        courier_id: status === "awaiting_pickup" ? null : pickOne(courierUserDocs)._id,
+        courier_id:
+          status === "awaiting_pickup" ? null : pickOne(courierUserDocs)._id,
         address: orderItem.delivery_address,
         status,
-        began_at: status === "awaiting_pickup" ? null : addDays(order.placed_at, randInt(0, 2)),
-        delivered_at: status === "delivered" ? addDays(order.placed_at, randInt(1, 3)) : null,
+        began_at:
+          status === "awaiting_pickup"
+            ? null
+            : addDays(order.placed_at, randInt(0, 2)),
+        delivered_at:
+          status === "delivered"
+            ? addDays(order.placed_at, randInt(1, 3))
+            : null,
         last_updated_at: now,
-        notes: randInt(0, 4) === 0 ? `Delivery note for order item ${orderItem._id}` : null
+        notes:
+          randInt(0, 4) === 0
+            ? `Delivery note for order item ${orderItem._id}`
+            : null,
       };
-      
+
       dbRef.deliveries.updateOne(
         { order_item_id: delivery.order_item_id },
         { $setOnInsert: delivery },
-        { upsert: true }
+        { upsert: true },
       );
     }
   }
-  
+
   print(`Deliveries inserted: ${dbRef.deliveries.countDocuments()}`);
 }
 
@@ -974,31 +1158,31 @@ let opinionsInserted = 0;
 
 for (const order of orderDocs) {
   if (opinionsInserted >= OPINIONS_COUNT) break;
-  
+
   for (const orderItem of order.order_items) {
     if (opinionsInserted >= OPINIONS_COUNT) break;
-    
+
     for (const course of orderItem.courses) {
       if (opinionsInserted >= OPINIONS_COUNT) break;
-      
+
       // About 20% chance of leaving an opinion
       if (randInt(0, 4) !== 0) continue;
-      
+
       const opinion = {
         course_id: course.course_id,
         customer_id: order.customer_id,
         rating: randInt(1, 5),
         opinion: randInt(0, 1) === 0 ? null : `Opinion about ${course.name}`,
-        created_at: addDays(order.placed_at, randInt(1, 10))
+        created_at: addDays(order.placed_at, randInt(1, 10)),
       };
-      
+
       // Use upsert to respect unique constraint on (course_id, customer_id)
       dbRef.opinions.updateOne(
         { course_id: opinion.course_id, customer_id: opinion.customer_id },
         { $setOnInsert: opinion },
-        { upsert: true }
+        { upsert: true },
       );
-      
+
       opinionsInserted++;
     }
   }

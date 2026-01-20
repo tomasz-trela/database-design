@@ -1,46 +1,53 @@
 const dbRef = db.getSiblingDB("catering_company");
 
 // Distribution of address counts among customers
-printjson(
-  dbRef.users
-    .aggregate([
-      { $match: { roles: "customer" } },
-      {
-        $project: {
-          addresses_count: {
-            $size: { $ifNull: ["$customer_data.addresses", []] },
-          },
+const t0 = Date.now();
+const res1 = dbRef.users
+  .aggregate([
+    { $match: { roles: "customer" } },
+    {
+      $project: {
+        addresses_count: {
+          $size: { $ifNull: ["$customer_data.addresses", []] },
         },
       },
-      { $group: { _id: "$addresses_count", n: { $sum: 1 } } },
-      { $sort: { _id: 1 } },
-    ])
-    .toArray()
-);
+    },
+    { $group: { _id: "$addresses_count", n: { $sum: 1 } } },
+    { $sort: { _id: 1 } },
+  ])
+  .toArray();
+const t1 = Date.now();
+
+printjson(res1);
+printjson({ ms: t1 - t0, returned: res1.length });
 
 // Top 20 customers by address count
-printjson(
-  dbRef.users
-    .aggregate([
-      { $match: { roles: "customer" } },
-      {
-        $project: {
-          _id: 1,
-          name: 1,
-          surname: 1,
-          addresses_count: {
-            $size: { $ifNull: ["$customer_data.addresses", []] },
-          },
+const t2 = Date.now();
+const res2 = dbRef.users
+  .aggregate([
+    { $match: { roles: "customer" } },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        surname: 1,
+        addresses_count: {
+          $size: { $ifNull: ["$customer_data.addresses", []] },
         },
       },
-      { $sort: { addresses_count: -1 } },
-      { $limit: 20 },
-    ])
-    .toArray()
-);
+    },
+    { $sort: { addresses_count: -1 } },
+    { $limit: 20 },
+  ])
+  .toArray();
+const t3 = Date.now();
+
+printjson(res2);
+printjson({ ms: t3 - t2, returned: res2.length });
 
 // Orders count by quarter
-const res = dbRef.orders
+const t4 = Date.now();
+const res3 = dbRef.orders
   .aggregate([
     {
       $project: {
@@ -72,5 +79,7 @@ const res = dbRef.orders
     },
   ])
   .toArray();
+const t5 = Date.now();
 
-printjson(res);
+printjson(res3);
+printjson({ ms: t5 - t4, returned: res3.length });
