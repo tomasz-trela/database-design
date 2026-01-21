@@ -35,13 +35,77 @@ W naszym przypadku implementacje można wykonać w obu technologiach. Wybór zal
 - Tam, gdzie integralność danych jest priorytetem
 - Normalizacja danych - brak potencjalnej konieczności przeszukiwanie wielu kolekcji w celu zaktualizowania jednej, wielokrotnie zduplikowanej wartości (choć może być to kwestia kiepskiego projektu)
 
+# W jaki sposób MongoDB różni się od PostgreSQL pod względem definiowania zapytań?
 
-# Czy pojawiła się konieczność zmiany założeń lub wybrane wymagania były  niemożliwe do zrealizowania? W jaki sposób wybrana baza NoSQL różni się od bazy relacyjnej pod względem definiowania zapytań? Jakie są główne różnice w wydajności i jakie są ich przyczyny
-W bazach nierelacyjnych wiele zapytań jest szybszych, ponieważ nie wymagają operacji JOIN, a wszystkie potrzebne dane znajdują się w jednym dokumencie. Z drugiej strony, zapytania analityczne i raportowe, np. statystyki dotyczące dań w zamówieniach, są trudniejsze do napisania i często mniej wydajne niż w bazach relacyjnych.
+## Filozofia zapytań:
+**SQL (PostgreSQL)** - deklaratywny: "Powiedz CO chcesz otrzymać, baza zdecyduje JAK to zrobić"
+- Optymalizator wybiera plan wykonania (index scan, hash join, merge join)
+- Możliwość analizy przez EXPLAIN ANALYZE
 
-W kontekście tej bazy, której głównym celem jest szybki odczyt danych przez klientów i sprawne składanie zamówień, wolniejsze generowanie statystyk jest akceptowalne. Operacje odczytu są wykonywane bardzo często, natomiast raporty znacznie rzadziej. 
+**MongoDB** - imperatywny pipeline: "Powiedz KROK PO KROKU co zrobić z danymi"
+- Agregacje wykonywane sekwencyjnie: etap 1 → etap 2 → etap 3
+- Mniejsza elastyczność optymalizatora
 
-Jednakże na korzyść baz relacyjnych to, zapewnią nam spójność przy zamówieniach, fakturach.
+## Kluczowe różnice składniowe:
+
+**1. Rozpłaszczanie zagnieżdżonych struktur**
+- SQL: JOIN automatycznie "płaszczy" relacje między tabelami
+- MongoDB: każdy poziom zagnieżdżenia wymaga osobnego `$unwind` (np. zamówienia zawierające pozycje zawierające kursy = 2x `$unwind`)
+
+**2. Łączenie z innymi kolekcjami/tabelami**
+- SQL: naturalny JOIN w jednej linii
+- MongoDB: `$lookup` zwraca tablicę, którą trzeba "rozpakować" przez `$unwind`
+
+**3. Agregacje złożone**
+- SQL: możliwość użycia CTE (WITH) dla nazwanych podkwerend - czytelny podział na etapy
+- MongoDB: wszystko w jednym pipeline, brak mechanizmu nazwanych podkwerend
+
+**4. Window functions**
+- SQL: natywne `ROW_NUMBER()`, `LAG()`, `LEAD()`, `PERCENTILE_CONT()`
+- MongoDB: brak odpowiednika - wymaga ręcznej implementacji przez sortowanie i indeksowanie
+
+**5. Złożoność składni**
+- Proste zapytanie (popularne dania): SQL ~6 linii, MongoDB ~25 linii z pipeline
+- Złożona agregacja (najlepsi kucharze): SQL używa 4 CTE, MongoDB wymaga zagnieżdżonych `$lookup` i wielokrotnych transformacji
+
+MongoDB jest prostszy dla operacji na pojedynczych dokumentach zagnieżdżonych, ale SQL jest prostszy dla agregacji wielotabelowych.
+
+# Róznice w wydajności
+
+**Dlaczego MongoDB szybszy przy prostych odczytach:**
+1. Embedowanie eliminuje JOINy - wszystko w jednym miejscu
+2. Mniej operacji I/O - jeden seek zamiast wielu
+3. Brak konieczności łączenia rekordów z różnych tabel
+
+**Dlaczego PostgreSQL szybszy przy agregacjach:**
+1. Optymalizator - automatycznie wybiera najlepszą strategię (hash/merge/nested loop join)
+2. Indeksy B-tree bardzo efektywne dla JOINów
+3. Window functions zaimplementowane natywnie w silniku
+4. `$lookup` w MongoDB nie zawsze wykorzystuje indeksy efektywnie, szczególnie w zagnieżdżonych pipeline'ach
+5. `$unwind` tworzy wiele dokumentów tymczasowych w pamięci
+
+## Czynniki wpływające na wydajność w obu bazach:
+
+**Indeksy:**
+- MongoDB: wymaga indeksu na każde pole w `$match`, `$lookup`, `$sort`
+- PostgreSQL: dodatkowo partial indexes i expression indexes
+- Oba: indeksy spowalniają INSERT/UPDATE
+
+**Normalizacja vs denormalizacja:**
+- MongoDB: denormalizacja = szybszy odczyt, wolniejszy update duplikatów
+- PostgreSQL: normalizacja = wolniejszy odczyt (JOINy), szybsze update, brak duplikatów
+
+**Rozmiar danych:**
+- MongoDB: większe dokumenty = mniej I/O ale wolniejszy transfer
+- PostgreSQL: projekcja tylko potrzebnych kolumn
+
+## Wnioski o wydajności:
+
+Wybór technologii powinien opierać się na dominującym workloadzie:
+- **Document-centric** (90%+ operacji "pobierz/zapisz dokument") → MongoDB
+- **Analytics-heavy** (częste agregacje, raporty wielodomenowe) → PostgreSQL
+
+W systemie kateringowym PostgreSQL był szybszy w ~70% zapytań (głównie agregacje i statystyki), ale MongoDB był szybszy w podstawowych operacjach CRUD. Ponieważ raporty generowane są rzadziej niż składane zamówienia, MongoDB byłby konkurencyjny gdyby agregacje nie były tak kluczowe dla biznesu.
 
 
 # Co byśmy wybrali do firmy kateringowej?
