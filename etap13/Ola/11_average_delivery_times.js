@@ -10,20 +10,19 @@ printjson(
   [
     {
       $match: {
-      status: "delivered",
-      began_at: { $ne: null },
-      delivered_at: { $gte: startDate, $lt: endDate }
+        status: "delivered",
+        began_at: { $ne: null }
       }
     },
     {
       $lookup: {
-      from: "users",
-      localField: "courier_id",
-      foreignField: "_id",
-      pipeline: [
-          { $project: { _id: 0, name: 1, surname: 1 } }
-      ],
-      as: "courier_info"
+        from: "users",
+        localField: "courier_id",
+        foreignField: "_id",
+        pipeline: [
+            { $project: { _id: 0, name: 1, surname: 1 } }
+        ],
+        as: "courier_info"
       }
     },
     { $unwind: "$courier_info" },
@@ -38,7 +37,7 @@ printjson(
         } 
       }
     },
-      {
+    {
       $group: {
         _id: "$courier_id",
         name: { $first: "$courier_info.name" },

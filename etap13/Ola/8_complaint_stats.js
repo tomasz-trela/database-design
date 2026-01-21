@@ -13,38 +13,38 @@ printjson(
     },
     {
       $project: {
-      course_id: "$_id",
-      course_name: "$name",
-      complaint_count: { $size: "$complaints_data" },
-      num_of_resolved: {
-        $size: {
-            $filter: {
-                input: "$complaints_data",
-                as: "comp",
-                cond: { $ne: ["$$comp.resolved_at", null] }
+        course_id: "$_id",
+        course_name: "$name",
+        complaint_count: { $size: "$complaints_data" },
+        num_of_resolved: {
+          $sum: {
+            $map: {
+              input: "$complaints_data",
+              as: "comp",
+              in: { $cond: [{ $gt: ["$$comp.resolved_at", null] }, 1, 0] }
             }
-        }
-      },
-      num_of_unresolved: {
-        $size: {
-            $filter: {
-                input: "$complaints_data",
-                as: "comp",
-                cond: { $eq: ["$$comp.resolved_at", null] }
+          }
+        },
+        num_of_unresolved: {
+          $sum: {
+            $map: {
+              input: "$complaints_data",
+              as: "comp",
+              in: { $cond: [{ $eq: ["$$comp.resolved_at", null] }, 1, 0] }
             }
-        }
-      },
-      average_refund: {
-        $ifNull: [
-          { $round: [{ $avg: "$complaints_data.refund_amount" }, 2] },
-          0
-        ]
+          }
+        },
+        average_refund: {
+          $ifNull: [
+            { $round: [{ $avg: "$complaints_data.refund_amount" }, 2] },
+            0
+          ]
         }
       }
     },
     {
       $sort: {
-          complaint_count: -1,
+          complaint_count: 1,
           course_name: 1
       }
     }
