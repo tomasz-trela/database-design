@@ -1,5 +1,14 @@
 # Różnice w projektach
 
+
+
+Główna różnica w projektach wynikała z różnicy w mechanizmach tworzenia relacji między danymi w MongoDB a SQL'u. Możliwość embedowania i duplikowania danych na poczet pewnych dokumentów doskonale modelował wymagania, jakie stawiają te dokumenty (np. duplikowanie pozycji na faktury w ramach archiwizacji). MongoDB oferuje również o wiele bardziej elastyczne podejście do projektowania struktury danych, mogliśmy z łatwością zjednoczyć wszystkich użytkowników systemu do jednej kolekcji, uwzględniając ich unikatowe atrybuty jako opcjonalne pola w dokumencie. SQL zaś wymagał rozbicia takiej kolekcji na szereg tabel. Krótko mówiąc, NOSQL pozwolił nam modelować bazę z myślą o warstwie logiki aplikacji, co stanowiło pewnego rodzaju ułatwienie, aczkolwiek okazało się, że definicja zapytań czysto statystycznych stało się bardziej wymagające ze względu na:
+- Bardziej złożoną i mniej oczywistą składnię (przynajmniej w perspektywie tego, w czym się dotychczas poruszaliśmy w ramach SQL'a)
+- Limity, jakie narzuca MongoDB, mianowicie limit 16MB na dokument, który stawał się problematyczny przy zapytaniach agregujących spore kolekcje.
+- Obniżona wydajność zapytań angażujących wiele kolekcji, m. in. ze względu na to, że MongoDB nie jest strukturalnie do tego dostosowane, w SQL'u zaś JOIN jest "natywną" i zoptymalizowaną operacją. Operacje $unwind, czy $lookup są w MongoDB z natury kosztowne.
+
+NoSQL wymaga wiedzy na temat tego, jak poruszać się w obliczu powyższych problemów i z naszej perspektywy baza relacyjna wydaje się być bardziej "uniwersalna" w kwestii zapytań kosztem elastyczności w strukturze.
+
 # Baza relacyjna 
 1. Dane są znormalizowane i powiązane relacjami. Częste operacje JOIN, mogą wpływać na wydajność (porównując do embeddingu w NoSQL), ale zapewniają wysoką spójność danych. Dzięki temu duża część walidacji oraz kontroli integralności jest realizowana na poziomie bazy danych, a nie aplikacji.
 
@@ -11,15 +20,6 @@
 2. Większa odpowiedzialność na aplikacji związana z walidacją i spójność danych
  
 3. Duża swoboda w strukturze. Zmiany w sposobie przechowywania danych można wprowadzać szybciej niż w bazach relacyjnych, bez kosztownych migracji i ryzyka naruszenia integralności referencyjnej.
-
-
-Główna różnica w projektach wynikała z różnicy w mechanizmach tworzenia relacji między danymi w MongoDB a SQL'u. Możliwość embedowania i duplikowania danych na poczet pewnych dokumentów doskonale modelował wymagania, jakie stawiają te dokumenty (np. duplikowanie pozycji na faktury w ramach archiwizacji). MongoDB oferuje również o wiele bardziej elastyczne podejście do projektowania struktury danych, mogliśmy z łatwością zjednoczyć wszystkich użytkowników systemu do jednej kolekcji, uwzględniając ich unikatowe atrybuty jako opcjonalne pola w dokumencie. SQL zaś wymagał rozbicia takiej kolekcji na szereg tabel. Krótko mówiąc, NOSQL pozwolił nam modelować bazę z myślą o warstwie logiki aplikacji, co stanowiło pewnego rodzaju ułatwienie, aczkolwiek okazało się, że definicja zapytań czysto statystycznych stało się bardziej wymagające ze względu na:
-- Bardziej złożoną i mniej oczywistą składnię (przynajmniej w perspektywie tego, w czym się dotychczas poruszaliśmy w ramach SQL'a)
-- Limity, jakie narzuca MongoDB, mianowicie limit 16MB na dokument, który stawał się problematyczny przy zapytaniach agregujących spore kolekcje.
-- Obniżona wydajność zapytań angażujących wiele kolekcji, m. in. ze względu na to, że MongoDB nie jest strukturalnie do tego dostosowane, w SQL'u zaś JOIN jest "natywną" i zoptymalizowaną operacją. Operacje $unwind, czy $lookup są w MongoDB z natury kosztowne.
-
-NoSQL wymaga wiedzy na temat tego, jak poruszać się w obliczu powyższych problemów i z naszej perspektywy baza relacyjna wydaje się być bardziej "uniwersalna" w kwestii zapytań kosztem elastyczności w strukturze.
-
 
 # Czy ich zastosowania są tożsame i można je traktować wymiennie? W jakich zastosowaniach lepiej sprawdzają się bazy relacyjne, a w jakich wybrana technologia nierelacyjna? 
 Nie we wszystkich zastosowaniach technologie sa tożsame, np. w aplikacjach płatniczych pod uwagę wchodzi tylko baza relacyjna, bo występuje silna potrzeba spójności. Jezeli mozemy pozwolic na chwilowa niespojnosc albo przewidujemy skalowanie horyzontalne to trzeba rozważyć czy nieskorzytać z baz nierelacyjnych. Błędem jest tworzenie bazy MongoDB tożsamej do bazy relacyjnej (przechowywanie ID obiektów wszędzie jako relacje).
@@ -43,7 +43,7 @@ W naszym przypadku implementacje można wykonać w obu technologiach. Wybór zal
 - Możliwość analizy przez EXPLAIN ANALYZE
 
 **MongoDB** - imperatywny pipeline: "Powiedz KROK PO KROKU co zrobić z danymi"
-- Agregacje wykonywane sekwencyjnie: etap 1 → etap 2 → etap 3
+- Agregacje wykonywane sekwencyjnie: etap 1 -> etap 2 -> etap 3
 - Mniejsza elastyczność optymalizatora
 
 ## Kluczowe różnice składniowe:
@@ -58,26 +58,22 @@ W naszym przypadku implementacje można wykonać w obu technologiach. Wybór zal
 
 **3. Agregacje złożone**
 - SQL: możliwość użycia CTE (WITH) dla nazwanych podkwerend - czytelny podział na etapy
-- MongoDB: wszystko w jednym pipeline, brak mechanizmu nazwanych podkwerend
-
-**4. Window functions**
-- SQL: natywne `ROW_NUMBER()`, `LAG()`, `LEAD()`, `PERCENTILE_CONT()`
-- MongoDB: brak odpowiednika - wymaga ręcznej implementacji przez sortowanie i indeksowanie
+- MongoDB: wszystko w jednym pipeline
 
 **5. Złożoność składni**
-- Proste zapytanie (popularne dania): SQL ~6 linii, MongoDB ~25 linii z pipeline
-- Złożona agregacja (najlepsi kucharze): SQL używa 4 CTE, MongoDB wymaga zagnieżdżonych `$lookup` i wielokrotnych transformacji
+- Proste zapytanie: SQL ~6 linii, MongoDB ~25 linii z pipeline
+- Złożona agregacja: SQL używa 4 CTE, MongoDB wymaga zagnieżdżonych `$lookup` i wielokrotnych transformacji
 
 MongoDB jest prostszy dla operacji na pojedynczych dokumentach zagnieżdżonych, ale SQL jest prostszy dla agregacji wielotabelowych.
 
 # Róznice w wydajności
 
-**Dlaczego MongoDB szybszy przy prostych odczytach:**
+**Dlaczego MongoDB jest szybszy przy prostych odczytach:**
 1. Embedowanie eliminuje JOINy - wszystko w jednym miejscu
 2. Mniej operacji I/O - jeden seek zamiast wielu
 3. Brak konieczności łączenia rekordów z różnych tabel
 
-**Dlaczego PostgreSQL szybszy przy agregacjach:**
+**Dlaczego PostgreSQL jest szybszy przy agregacjach:**
 1. Optymalizator - automatycznie wybiera najlepszą strategię (hash/merge/nested loop join)
 2. Indeksy B-tree bardzo efektywne dla JOINów
 3. Window functions zaimplementowane natywnie w silniku
@@ -99,15 +95,7 @@ MongoDB jest prostszy dla operacji na pojedynczych dokumentach zagnieżdżonych,
 - MongoDB: większe dokumenty = mniej I/O ale wolniejszy transfer
 - PostgreSQL: projekcja tylko potrzebnych kolumn
 
-## Wnioski o wydajności:
-
-Wybór technologii powinien opierać się na dominującym workloadzie:
-- **Document-centric** (90%+ operacji "pobierz/zapisz dokument") → MongoDB
-- **Analytics-heavy** (częste agregacje, raporty wielodomenowe) → PostgreSQL
-
-W systemie kateringowym PostgreSQL był szybszy w ~70% zapytań (głównie agregacje i statystyki), ale MongoDB był szybszy w podstawowych operacjach CRUD. Ponieważ raporty generowane są rzadziej niż składane zamówienia, MongoDB byłby konkurencyjny gdyby agregacje nie były tak kluczowe dla biznesu.
-
+W systemie kateringowym PostgreSQL był szybszy w ~70% zapytań (głównie agregacje i statystyki), ale MongoDB był szybszy w podstawowych operacjach CRUD.
 
 # Co byśmy wybrali do firmy kateringowej?
 Wobec powyższych różnic, lepszym wyborem dla nas byłoby pozostanie przy bazie relacyjnej. Jak wspomniano, mniej zgrabnie modeluje się logikę warstyw aplikacji w takiej bazie danych, aczkolwiek to, co zyskujemy w dziedzine zapytań jest nieporównywalne do tej przewagi MongoDB. Należy też zaznaczyć, że implementacja logiki aplikacji nawet w bazie relacyjnej nie byłaby znacznie bardziej złożona dla naszego systemu - nie jest to nienaturalne. Dobry system e-commerce to taki, który łatwo daje się analizować i to daje nam SQL. Kolejnym argumentem przemawiającym za bazą relacyjną jest ACID - który jest cechą wybranej przez nas technologii relacyjnej (Postgres). W systemie, gdzie mamy  do czynienia z dokumentami handlowymi, atomowość i integralność danych jest kluczowa. Rzecz jasna MongoDB również jest ACID, ale w ramach pojedynczej kolekcji.
-
